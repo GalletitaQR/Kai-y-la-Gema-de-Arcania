@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 3
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - Ground
+  - Player
+  - Enemy
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: BG_Far
+    uniqueID: 3840219967
+    locked: 0
+  - name: BG_Mid
+    uniqueID: 123111791
+    locked: 0
+  - name: BG_Low
+    uniqueID: 2517658357
+    locked: 0
+  - name: Tilemap
+    uniqueID: 1828560097
+    locked: 0
+  - name: Trees
+    uniqueID: 1479750111
+    locked: 0
+  - name: Enemies
+    uniqueID: 3472793429
+    locked: 0
+  - name: Player
+    uniqueID: 3846928663
+    locked: 0
+  m_RenderingLayers:
+  - Default
+  m_MigratedRenderPipelines: []

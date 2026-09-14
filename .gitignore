@@ -1,0 +1,53 @@
+# =============================
+# .gitignore para proyectos Unity
+# =============================
+
+# Carpetas que Unity regenera automáticamente
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Archivos de compilación / cache de Visual Studio o Rider
+.vs/
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Archivos de assets auto-generados por Unity (no se deben versionar)
+sysinfo.txt
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Carpeta de crash reports
+crashlytics-build.properties
+
+# Archivos ocultos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Empaquetado de Addressables (si usas ese sistema)
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+
+# Metadatos que Unity vuelve a generar
+/[Aa]ssets/[Aa]ssetStoreTools*
+
+# Configuración local de colaboración (opcional, si no quieren compartir su config de editor personal)
+/[Pp]rojectSettings/EditorBuildSettings.asset
