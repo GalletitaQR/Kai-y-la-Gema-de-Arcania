@@ -1,8 +1,11 @@
 using UnityEngine;
 using System.Collections;
 
-public class CrabAnimations : MonoBehaviour
+public class CrabAnimations : MonoBehaviour, IEnemigo
 {
+    [Header("Barra de vida")]
+    public BarraVida barraVida;
+
     [Header("Patrulla")]
     public Transform pointA;
     public Transform pointB;
@@ -51,6 +54,7 @@ public class CrabAnimations : MonoBehaviour
         if (pointB != null) patrolPointB = pointB.position;
 
         currentHealth = maxHealth;
+        if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
     }
 
     void Update()
@@ -187,6 +191,7 @@ public class CrabAnimations : MonoBehaviour
         if (isDead) return;
 
         currentHealth -= amount;
+        if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
         Debug.Log($"[DEBUG] {gameObject.name} recibió {amount} de daño. Vida restante: {currentHealth}/{maxHealth}");
         animator.SetTrigger("Hit");
 

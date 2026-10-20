@@ -1,11 +1,17 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
     [Header("Configuración de Movimiento")]
     public float moveSpeed = 4f;
     public float jumpForce = 8f;
+
+    [Header("Gema de fuerza")]
+    public TextMeshProUGUI textoDano;
+    public int danoPorGema = 10;
+    private int bonusDano = 0;
 
     [Header("Ground Check")]
     public Transform groundCheck;
@@ -15,6 +21,12 @@ public class PlayerController : MonoBehaviour
     [Header("Vida")]
     public int maxHealth = 100;
     public int currentHealth;
+
+    [Header("UI")]
+    public BarraVida barraVida;
+
+    [HideInInspector] 
+    public Vector2 velocidadPlataforma;
 
     [Header("Ataque")]
     public float attackDuration = 0.4f;
@@ -30,6 +42,7 @@ public class PlayerController : MonoBehaviour
     public float knockbackDuration = 0.25f;
 
     private Rigidbody2D rb;
+    private SpriteRenderer sr;
     private SPUM_Prefabs spumPrefabs;
     private PlayerState currentState = PlayerState.IDLE;
     private bool isGrounded;
@@ -37,6 +50,8 @@ public class PlayerController : MonoBehaviour
     private bool isKnockback = false;
     private bool isInvincible = false;
     private bool isDead = false;
+    private int puntaje = 0;
+    public int cristales = 0;
 
     void Awake()
     {
@@ -44,6 +59,9 @@ public class PlayerController : MonoBehaviour
         spumPrefabs = GetComponent<SPUM_Prefabs>();
         spumPrefabs.OverrideControllerInit();
         currentHealth = maxHealth;
+        if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
+        if (textoDano != null) textoDano.text = "";
+        sr = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -57,6 +75,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetButtonDown("Jump") && isGrounded && !isAttacking && !isKnockback)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            velocidadPlataforma = Vector2.zero;
         }
 
         // Ataque
@@ -90,14 +109,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
-    {
-        // Seguro extra: nunca tocar linearVelocity si el cuerpo ya no es Dynamic
-        if (isDead || isKnockback || rb.bodyType != RigidbodyType2D.Dynamic) return;
+void FixedUpdate()
+{
+    if (isDead || isKnockback || rb.bodyType != RigidbodyType2D.Dynamic) return;
 
-        float moveX = isAttacking ? 0f : Input.GetAxisRaw("Horizontal");
-        rb.linearVelocity = new Vector2(moveX * moveSpeed, rb.linearVelocity.y);
-    }
+    float moveX = isAttacking ? 0f : Input.GetAxisRaw("Horizontal");
+    rb.linearVelocity = new Vector2(moveX * moveSpeed + velocidadPlataforma.x, rb.linearVelocity.y);
+}
 
     IEnumerator Attack()
     {
@@ -115,18 +133,14 @@ public class PlayerController : MonoBehaviour
 
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayer);
         Debug.Log($"[DEBUG] Ataque conectó con {hitEnemies.Length} colliders en la capa Enemy.");
-        foreach (Collider2D enemy in hitEnemies)
-        {
-            CrabAnimations crab = enemy.GetComponent<CrabAnimations>();
-            if (crab != null)
-            {
-                crab.TakeDamage(attackDamage);
-            }
-            else
-            {
-                Debug.Log($"[DEBUG] Se detectó '{enemy.gameObject.name}' pero no tiene CrabAnimations.");
-            }
-        }
+        foreach (Collider2D col in hitEnemies)
+{
+    IEnemigo enemigo = col.GetComponentInParent<IEnemigo>();
+    if (enemigo != null)
+        enemigo.TakeDamage(attackDamage);
+    else
+        Debug.Log($"[DEBUG] '{col.gameObject.name}' está en la capa Enemy pero no tiene script de enemigo.");
+}
 
         yield return new WaitForSeconds(attackDuration - 0.2f);
 
@@ -140,6 +154,7 @@ public class PlayerController : MonoBehaviour
 
         currentHealth -= amount;
         currentHealth = Mathf.Max(currentHealth, 0);
+        if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
 
         if (currentHealth <= 0)
         {
@@ -185,4 +200,54 @@ public class PlayerController : MonoBehaviour
         currentState = PlayerState.DEATH;
         spumPrefabs.PlayAnimation(currentState, 0);
     }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Fruta"))
+        {
+            puntaje += 10;
+            currentHealth = Mathf.Min(currentHealth + 10, maxHealth);
+            if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
+            Debug.Log("Puntaje: " + puntaje);
+            Debug.Log("Vida: " + currentHealth);
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("Citrico"))
+        {
+            puntaje -= 5;
+            currentHealth = Mathf.Max(currentHealth - 10, 0);
+            if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
+            Debug.Log("Puntaje: " + puntaje);
+            Debug.Log("Vida: " + currentHealth);
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("Gema"))
+{
+    cristales++;                     
+    attackDamage += danoPorGema;
+    bonusDano += danoPorGema;
+    ActualizarTextoDano();
+    Destroy(other.gameObject);
+}
+    }
+void ActualizarTextoDano()
+{
+    if (textoDano == null) return;
+    textoDano.text = "+" + bonusDano + " Damage";
+    StopCoroutine("PulsoTexto");
+    StartCoroutine("PulsoTexto");
+}
+
+IEnumerator PulsoTexto()
+{
+    float t = 0f;
+    while (t < 0.3f)
+    {
+        t += Time.deltaTime;
+        float escala = Mathf.Lerp(1.5f, 1f, t / 0.3f);
+        textoDano.transform.localScale = new Vector3(escala, escala, 1f);
+        yield return null;
+    }
+    textoDano.transform.localScale = Vector3.one;
+}
 }
