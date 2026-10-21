@@ -250,4 +250,13 @@ IEnumerator PulsoTexto()
     }
     textoDano.transform.localScale = Vector3.one;
 }
+
+public void MuerteInstantanea()
+{
+    if (isDead) return;
+
+    currentHealth = 0;
+    if (barraVida != null) barraVida.Actualizar(0, maxHealth);
+    Die();
+}
 }
