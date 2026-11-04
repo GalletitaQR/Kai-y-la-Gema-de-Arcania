@@ -1,0 +1,28 @@
+Pixel SFX Free
+
+Documentation. 30 sounds as WAV (44.1 kHz, 16-bit, mono), one AudioClip each, a folder
+per kind:
+
+  coins/ (6)
+    coin_bright, coin_double, gem, gem_big, heart, key
+  explosions/ (2)
+    boom_big, explosion_01
+  hits/ (3)
+    death, enemy_hit, hurt
+  jingles/ (2)
+    game_over, level_complete
+  magic/ (1)
+    teleport
+  movement/ (6)
+    bounce, dash, jump_classic, jump_double, jump_high, land
+  powerups/ (3)
+    extra_life, heal, powerup_arp
+  shooting/ (3)
+    charge, laser_01, shot_classic
+  ui/ (4)
+    cancel, confirm, error, select
+
+  Demo/PixelSFXFreeDemo.unity   a button per sound
+
+Play one with AudioSource.PlayOneShot(clip). The WAVs import in any Unity version; the demo
+scene needs Unity 6.3 or later.

@@ -24,7 +24,7 @@ public class MenuManager : MonoBehaviour
     public AudioSource musicPlayer;
 
     [Header("Escena del juego")]
-    public string gameSceneName = "Desafio_1";
+    public string gameSceneName = "MenuPractica";
 
     private void Start()
     {

@@ -24,6 +24,9 @@ public class MurcielagoIA : MonoBehaviour, IEnemigo
     public int maxHealth = 30;
     public int currentHealth;
 
+    [Header("Puntaje")]
+    public int scoreValue = 20;
+
     private Vector3 patrolPointA, patrolPointB;
     private bool goingToB = true;
     private Transform player;
@@ -133,6 +136,7 @@ public class MurcielagoIA : MonoBehaviour, IEnemigo
 
         currentHealth -= amount;
         if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
+        AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.enemyHit : null);
 
         if (currentHealth <= 0)
         {
@@ -148,6 +152,8 @@ public class MurcielagoIA : MonoBehaviour, IEnemigo
     {
         isDead = true;
         StopAllCoroutines();
+        AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.enemyDeath : null);
+        if (GameManager.Instance != null) GameManager.Instance.AddScore(scoreValue);
 
         if (miCollider != null) miCollider.enabled = false;   // ya no daña ni se puede golpear
         if (barraVida != null) barraVida.gameObject.SetActive(false);

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1154729624244429667}
   - component: {fileID: 4633543375185918312}
   - component: {fileID: 5914623374876731653}
+  - component: {fileID: 709501116802282697}
   m_Layer: 0
   m_Name: GemaVerde
   m_TagString: Untagged
@@ -162,3 +163,22 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &709501116802282697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2988216986384541404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d55b5b436b641a341a1e44149741ee36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GemFragment
+  fragmentNumber: 1
+  message: "\xA1Has obtenido el primer fragmento de la Gema de Arcan\xEDa!"
+  messageSeconds: 4
+  damageBonus: 10
+  scoreValue: 50
+  glowColor: {r: 0.45, g: 1, b: 0.65, a: 0.8}
+  glowSize: 1.8
