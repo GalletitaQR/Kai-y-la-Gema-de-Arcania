@@ -6,7 +6,7 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
     [Header("Barra de vida")]
     public BarraVida barraVida;
 
-    [Header("Patrulla")]
+    [Header("Patrulla (Hijos con posiciones fijas al iniciar)")]
     public Transform pointA;
     public Transform pointB;
     public float patrolSpeed = 1.5f;
@@ -28,33 +28,40 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
     [Header("Puntaje")]
     public int scoreValue = 25;
 
-    private Vector3 patrolPointA;
-    private Vector3 patrolPointB;
+    // Posiciones mundiales fijas para que los hijos no se muevan con el padre
+    private Vector3 worldPointA;
+    private Vector3 worldPointB;
     private bool goingToB = true;
+
     private Transform player;
     private Rigidbody2D rb;
     private Animator animator;
+    private SpriteRenderer spriteRenderer;
     private bool isDead = false;
     private bool isAttacking = false;
     private bool canAttack = true;
 
-    // Guardamos la dirección/decisión calculada en Update
-    // para aplicarla como física en FixedUpdate.
     private enum CrabState { PATROL, CHASE, ATTACK_STOP }
-    private CrabState physicsState = CrabState.PATROL;
+    private CrabState currentState = CrabState.PATROL;
     private float desiredDirectionX = 0f;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
 
-        // Capturamos la posición MUNDIAL de los puntos una sola vez,
-        // antes de que cualquier rotación (flip) los desplace.
-        // Así, aunque PointA/PointB sean hijos del cangrejo, su
-        // objetivo de patrulla queda fijo para siempre.
-        if (pointA != null) patrolPointA = pointA.position;
-        if (pointB != null) patrolPointB = pointB.position;
+        // IMPORTANTE: Guardamos la posición absoluta en el mundo de los puntos hijos
+        // para que, aunque sean hijos, el cangrejo patrulle hacia coordenadas fijas del mapa.
+        if (pointA != null) worldPointA = pointA.position;
+        else worldPointA = transform.position + Vector3.left * 2f;
+
+        if (pointB != null) worldPointB = pointB.position;
+        else worldPointB = transform.position + Vector3.right * 2f;
+
+        // Opcional: una vez guardadas las posiciones del mundo, podemos desconectarlos 
+        // de la jerarquía para evitar que se muevan con el transform si lo prefieres,
+        // o dejarlos así con las posiciones mundiales ya fijadas.
 
         currentHealth = maxHealth;
         if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
@@ -62,11 +69,7 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
 
     void Update()
     {
-        if (isDead) return;
-
-        // Durante el ataque no recalculamos movimiento,
-        // la corrutina Attack() ya controla el estado físico.
-        if (isAttacking) return;
+        if (isDead || isAttacking) return;
 
         DetectPlayer();
 
@@ -82,17 +85,13 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
 
     void FixedUpdate()
     {
-        if (isDead) return;
+        if (isDead || isAttacking) return;
 
-        // Si está atacando, la corrutona ya fijó la velocidad en 0,
-        // no la pisamos aquí.
-        if (isAttacking) return;
-
-        switch (physicsState)
+        switch (currentState)
         {
             case CrabState.PATROL:
             case CrabState.CHASE:
-                float speed = physicsState == CrabState.CHASE ? chaseSpeed : patrolSpeed;
+                float speed = currentState == CrabState.CHASE ? chaseSpeed : patrolSpeed;
                 rb.linearVelocity = new Vector2(desiredDirectionX * speed, rb.linearVelocity.y);
                 break;
 
@@ -110,21 +109,21 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
 
     void DecidePatrol()
     {
-        if (pointA == null || pointB == null)
+        // Usamos las posiciones fijas del mundo que guardamos en Awake
+        Vector3 targetPos = goingToB ? worldPointB : worldPointA;
+        Vector2 direction = (targetPos - transform.position);
+        
+        if (Mathf.Abs(direction.x) > 0.05f)
         {
-            physicsState = CrabState.ATTACK_STOP;
-            return;
+            desiredDirectionX = Mathf.Sign(direction.x);
+            FlipTowards(desiredDirectionX);
         }
 
-        Vector3 targetPos = goingToB ? patrolPointB : patrolPointA;
-        Vector2 direction = (targetPos - transform.position);
-        desiredDirectionX = Mathf.Sign(direction.x);
-        physicsState = CrabState.PATROL;
-
-        FlipTowards(direction.x);
+        currentState = CrabState.PATROL;
         animator.SetBool("IsMoving", true);
 
-        if (Vector2.Distance(transform.position, targetPos) < 0.2f)
+        // Si llegó al objetivo, cambiamos de dirección
+        if (Vector2.Distance(transform.position, targetPos) < 0.3f)
         {
             goingToB = !goingToB;
         }
@@ -138,14 +137,14 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
         {
             Vector2 direction = (player.position - transform.position);
             desiredDirectionX = Mathf.Sign(direction.x);
-            physicsState = CrabState.CHASE;
+            currentState = CrabState.CHASE;
 
             FlipTowards(direction.x);
             animator.SetBool("IsMoving", true);
         }
         else
         {
-            physicsState = CrabState.ATTACK_STOP;
+            currentState = CrabState.ATTACK_STOP;
             animator.SetBool("IsMoving", false);
 
             if (canAttack)
@@ -159,8 +158,8 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
     {
         canAttack = false;
         isAttacking = true;
-        physicsState = CrabState.ATTACK_STOP;
-        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); // Frena al atacar
+        currentState = CrabState.ATTACK_STOP;
+        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         animator.SetBool("IsMoving", false);
         animator.SetTrigger("Attack");
 
@@ -183,10 +182,13 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
 
     void FlipTowards(float directionX)
     {
-        if (directionX > 0)
-            transform.localRotation = Quaternion.Euler(0, 0, 0);
-        else if (directionX < 0)
-            transform.localRotation = Quaternion.Euler(0, 180, 0);
+        if (spriteRenderer != null)
+        {
+            if (directionX > 0)
+                spriteRenderer.flipX = false;
+            else if (directionX < 0)
+                spriteRenderer.flipX = true;
+        }
     }
 
     public void TakeDamage(int amount)
