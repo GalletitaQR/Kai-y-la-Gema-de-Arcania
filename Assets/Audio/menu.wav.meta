@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: 0ea9f9effbc4049f8b137f84c7b1d594
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 8
+  defaultSettings:
+    serializedVersion: 2
+    loadType: 0
+    sampleRateSetting: 0
+    sampleRateOverride: 44100
+    compressionFormat: 1
+    quality: 1
+    conversionMode: 0
+    preloadAudioData: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 382266
+  packageName: Free Epic Fantasy Music Pack For Action Platformers And RPGs
+  packageVersion: 1.0
+  assetPath: Assets/Free Music 01/LOOP VERSIONS/02 - Intro Adventurous LOOP 142bpm.wav
+  uploadId: 922056

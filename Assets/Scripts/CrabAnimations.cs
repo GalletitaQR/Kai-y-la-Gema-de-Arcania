@@ -25,6 +25,9 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
     public int maxHealth = 50;
     public int currentHealth;
 
+    [Header("Puntaje")]
+    public int scoreValue = 25;
+
     private Vector3 patrolPointA;
     private Vector3 patrolPointB;
     private bool goingToB = true;
@@ -192,8 +195,8 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
 
         currentHealth -= amount;
         if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
-        Debug.Log($"[DEBUG] {gameObject.name} recibió {amount} de daño. Vida restante: {currentHealth}/{maxHealth}");
         animator.SetTrigger("Hit");
+        AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.enemyHit : null);
 
         if (currentHealth <= 0)
         {
@@ -203,8 +206,9 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
 
     void Die()
     {
-        Debug.Log($"[DEBUG] {gameObject.name} murió.");
         isDead = true;
+        AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.enemyDeath : null);
+        if (GameManager.Instance != null) GameManager.Instance.AddScore(scoreValue);
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Static;
         animator.SetTrigger("Death");
