@@ -191,20 +191,26 @@ public class CrabAnimations : MonoBehaviour, IEnemigo
         }
     }
 
-    public void TakeDamage(int amount)
+public void TakeDamage(int amount)
+{
+    if (isDead) return;
+
+    currentHealth -= amount;
+    if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
+    
+    // Solo reproduce el hit y sonido de golpe si NO está atacando
+    if (!isAttacking)
     {
-        if (isDead) return;
-
-        currentHealth -= amount;
-        if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
         animator.SetTrigger("Hit");
-        AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.enemyHit : null);
-
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
     }
+
+    AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.enemyHit : null);
+
+    if (currentHealth <= 0)
+    {
+        Die();
+    }
+}
 
     void Die()
     {
