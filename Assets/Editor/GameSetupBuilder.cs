@@ -77,14 +77,7 @@ public static class GameSetupBuilder
     [MenuItem("Tools/Kai/Rehacer Nivel 2 (borra Nivel2 y lo vuelve a generar)")]
     public static void RebuildLevel2()
     {
-        if (!EditorUtility.DisplayDialog("Rehacer Nivel 2", "Se borra Nivel2.unity y se genera de nuevo a partir de SampleScene. ¿Continuar?", "Continuar", "Cancelar"))
-            return;
-
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-            return;
-
-        BuildLevel2(true);
-        EnsureBuildScenes();
+        Level2Builder.CreateLevel2FromScratch();
     }
 
     // =====================================================================
@@ -605,7 +598,7 @@ public static class GameSetupBuilder
         }
 
         // Kai starts in the cave corridor (lower part of level 1).
-        PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+        PlayerController player = UnityEngine.Object.FindAnyObjectByType<PlayerController>();
         if (player != null)
         {
             Vector3 position = player.transform.position;
@@ -640,7 +633,7 @@ public static class GameSetupBuilder
             }
         }
 
-        GameManager manager = UnityEngine.Object.FindFirstObjectByType<GameManager>();
+        GameManager manager = UnityEngine.Object.FindAnyObjectByType<GameManager>();
         if (manager != null)
             manager.nextSceneName = "";
 
@@ -700,6 +693,7 @@ public static class GameSetupBuilder
         manager.lifeText = HudText(hud.transform, "LifeText", "Vida: 100/100", 0);
         manager.scoreText = HudText(hud.transform, "ScoreText", "Puntaje: 0", 1);
         manager.timeText = HudText(hud.transform, "TimeText", "Tiempo: 00:00", 2);
+        manager.weaponText = HudText(hud.transform, "WeaponText", "Arma: Espada", 3);
 
         // ----- Message banner -----
         GameObject bannerGo = UiKit.New("MessageBanner", ui, typeof(CanvasGroup), typeof(Image));
@@ -876,7 +870,7 @@ public static class GameSetupBuilder
 
     private static void CreateEventSystemIfMissing()
     {
-        if (UnityEngine.Object.FindFirstObjectByType<EventSystem>() == null)
+        if (UnityEngine.Object.FindAnyObjectByType<EventSystem>() == null)
             CreateEventSystem();
     }
 

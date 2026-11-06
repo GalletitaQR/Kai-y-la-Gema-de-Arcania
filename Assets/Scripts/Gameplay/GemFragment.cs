@@ -10,6 +10,7 @@ public class GemFragment : MonoBehaviour
 {
     [Header("Fragmento")]
     public int fragmentNumber = 1;
+    public bool unlocksCape = false;
     [TextArea]
     public string message = "¡Has obtenido el primer fragmento de la Gema de Arcanía!";
     public float messageSeconds = 4f;
@@ -39,6 +40,11 @@ public class GemFragment : MonoBehaviour
         if (player == null)
             return;
 
+        // Seguridad estricta: Kai debe estar físicamente junto a la gema (<= 2.2 unidades).
+        // Si la distancia es mayor (ej. saltos o checks al inicio del nivel), se descarta de inmediato.
+        if (Vector2.Distance(transform.position, player.transform.position) > 2.2f)
+            return;
+
         collected = true;
         Collect(player);
     }
@@ -56,6 +62,11 @@ public class GemFragment : MonoBehaviour
             GameManager.Instance.AddScore(scoreValue);
 
         SaveSystem.GemFragments = Mathf.Max(SaveSystem.GemFragments, fragmentNumber);
+        if (unlocksCape)
+        {
+            SaveSystem.HasCape = true;
+            player.EquipCape();
+        }
 
         if (MessageBanner.Instance != null)
             MessageBanner.Instance.Show(message, messageSeconds);

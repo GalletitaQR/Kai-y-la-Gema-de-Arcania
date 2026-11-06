@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +14,7 @@ public class PlayerObj : MonoBehaviour
 
     public Vector3 _goalPos;
     public bool isAction = false;
+    [System.NonSerialized]
     public Dictionary<PlayerState, int> IndexPair = new ();
     void Start()
     {

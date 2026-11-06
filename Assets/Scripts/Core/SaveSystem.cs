@@ -8,6 +8,7 @@ public static class SaveSystem
     private const string SavedSceneKey = "SavedScene";
     private const string PrologueSeenKey = "PrologueSeen";
     private const string HasStaffKey = "HasStaff";
+    private const string HasCapeKey = "HasCape";
     private const string GemFragmentsKey = "GemFragments";
 
     public static bool HasSave => PlayerPrefs.HasKey(SavedSceneKey);
@@ -23,6 +24,12 @@ public static class SaveSystem
     {
         get => PlayerPrefs.GetInt(HasStaffKey, 0) == 1;
         set => PlayerPrefs.SetInt(HasStaffKey, value ? 1 : 0);
+    }
+
+    public static bool HasCape
+    {
+        get => PlayerPrefs.GetInt(HasCapeKey, 0) == 1;
+        set => PlayerPrefs.SetInt(HasCapeKey, value ? 1 : 0);
     }
 
     public static int GemFragments
@@ -43,6 +50,7 @@ public static class SaveSystem
         PlayerPrefs.DeleteKey(SavedSceneKey);
         PrologueSeen = false;
         HasStaff = false;
+        HasCape = false;
         GemFragments = 0;
         PlayerPrefs.Save();
     }

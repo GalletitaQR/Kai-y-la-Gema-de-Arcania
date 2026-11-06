@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI timeText;
     public TextMeshProUGUI lifeText;
+    public TextMeshProUGUI weaponText;
 
     [Header("Pausa")]
     public GameObject pausePanel;
@@ -310,6 +311,12 @@ public class GameManager : MonoBehaviour
     {
         if (lifeText != null)
             lifeText.text = "Vida: " + current + "/" + max;
+    }
+
+    public void SetPlayerWeapon(string weaponName)
+    {
+        if (weaponText != null)
+            weaponText.text = "Arma: " + weaponName;
     }
 
     private void RefreshScore()

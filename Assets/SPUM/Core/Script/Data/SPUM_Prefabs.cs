@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
@@ -26,6 +26,7 @@ public class SPUM_Prefabs : MonoBehaviour
     public List<SpumPackage> spumPackages = new List<SpumPackage>();
     public List<PreviewMatchingElement> ImageElement = new();
     public List<SPUM_AnimationData> SpumAnimationData = new();
+    [System.NonSerialized]
     public Dictionary<string, List<AnimationClip>> StateAnimationPairs = new();
     public List<AnimationClip> IDLE_List = new();
     public List<AnimationClip> MOVE_List = new();
