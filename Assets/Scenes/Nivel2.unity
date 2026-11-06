@@ -1121,7 +1121,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.5, y: 1.8, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.2, y: 2.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1221,7 +1221,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.45
+  m_Radius: 0.35
 --- !u!50 &150000015
 Rigidbody2D:
   serializedVersion: 5
@@ -1309,7 +1309,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 14, y: 2.2, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.2, y: 2.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1409,7 +1409,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.45
+  m_Radius: 0.35
 --- !u!50 &150000025
 Rigidbody2D:
   serializedVersion: 5
@@ -1497,7 +1497,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 26, y: 4.8, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.2, y: 2.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1597,7 +1597,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.45
+  m_Radius: 0.35
 --- !u!50 &150000035
 Rigidbody2D:
   serializedVersion: 5
@@ -1685,7 +1685,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 38, y: 1.2, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.2, y: 2.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1785,7 +1785,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.45
+  m_Radius: 0.35
 --- !u!50 &150000045
 Rigidbody2D:
   serializedVersion: 5
@@ -1873,7 +1873,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 54, y: 3.8, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.2, y: 2.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1973,7 +1973,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.45
+  m_Radius: 0.35
 --- !u!50 &150000055
 Rigidbody2D:
   serializedVersion: 5
@@ -8840,6 +8840,8 @@ GameObject:
   m_Component:
   - component: {fileID: 847290613}
   - component: {fileID: 847290614}
+  - component: {fileID: 847290615}
+  - component: {fileID: 847290616}
   m_Layer: 0
   m_Name: SecretChest
   m_TagString: Untagged
@@ -8856,8 +8858,8 @@ Transform:
   m_GameObject: {fileID: 847290612}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 53, y: -2.1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 34.01, y: -1.06, z: 0}
+  m_LocalScale: {x: 1.9596142, y: 2.5341592, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1064003778}
@@ -8922,6 +8924,89 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
+--- !u!58 &847290615
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 847290612}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0.2}
+  m_Radius: 1.6
+--- !u!114 &847290616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 847290612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7a6c5d4e3f2101928374650abc9988, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SecretChest
+  openSprites:
+  - {fileID: 21300000, guid: 8275e5e1443d5b144b2365a3facc2299, type: 3}
+  - {fileID: 21300000, guid: 0677e82c8224b874e84638aa5c9be115, type: 3}
+  - {fileID: 21300000, guid: efd569e07af8ea44d98f84531d514600, type: 3}
+  - {fileID: 21300000, guid: 184c9c11548170749832375b7051715a, type: 3}
+  - {fileID: 21300000, guid: 978f8b5988322794eb4946aa779b1485, type: 3}
+  - {fileID: 21300000, guid: 83012a401c883e84d90dffd2c10186cb, type: 3}
+  - {fileID: 21300000, guid: 50e0697caaed43945920a314a3a81c21, type: 3}
+  - {fileID: 21300000, guid: 3cb9a87624896d24c8156ee3df07dbef, type: 3}
+  - {fileID: 21300000, guid: 2d6e12867c20c8842a8f65cbed884302, type: 3}
+  - {fileID: 21300000, guid: f081054d74fcd374e92d9e833334c354, type: 3}
+  - {fileID: 21300000, guid: 82f4fcb713c619b42ac72e5a09bf2081, type: 3}
+  - {fileID: 21300000, guid: e7d2ab45800c2684ab2bb20ace6ca370, type: 3}
+  - {fileID: 21300000, guid: 14876620d10336545bb4e0f80dbf91f4, type: 3}
+  - {fileID: 21300000, guid: 27476b6b9a440c045ac9e0ae57e7042b, type: 3}
+  - {fileID: 21300000, guid: ab8c89d3aac32364f88cd9b913a0e1d3, type: 3}
+  - {fileID: 21300000, guid: 3645b449922476e439f47afcb5395caa, type: 3}
+  - {fileID: 21300000, guid: 8fb07c7493d8aab44b98a959ab0bfbf6, type: 3}
+  - {fileID: 21300000, guid: 679d5675fc4f4db49adf85853fa8113b, type: 3}
+  - {fileID: 21300000, guid: 911493ace069a8542ae889db2c5bfd00, type: 3}
+  - {fileID: 21300000, guid: 7e671c84031eab24a87d4ffa69c8fc7e, type: 3}
+  - {fileID: 21300000, guid: f2151a4514d2b2341878c35e02307280, type: 3}
+  - {fileID: 21300000, guid: 4477593936471a44392474a46325ec6f, type: 3}
+  - {fileID: 21300000, guid: 05c6211cf9bb24b46acc2c9a87c45861, type: 3}
+  - {fileID: 21300000, guid: fcd5a50b5ff4eac47a2f8536bdc80a7e, type: 3}
+  - {fileID: 21300000, guid: aeb83f9fb9dcd7a4abd0e3444d193f02, type: 3}
+  - {fileID: 21300000, guid: eb12363eb083cc84fa15ee52895963d3, type: 3}
+  - {fileID: 21300000, guid: 44481cfdb3266ec4485afa7729d9b662, type: 3}
+  - {fileID: 21300000, guid: c6bd6b8c926e16e4fba7b10002e37f5d, type: 3}
+  openFps: 18
+  scoreReward: 150
+  rewardMessage: "\xA1HAS ENCONTRADO LA CAPA ARCANA!\nTe proteger\xE1 en tu aventura reduciendo un 20% todo el da\xF1o recibido."
+  messageDuration: 5
+  safetyRadius: 10
+  invincibilitySeconds: 4
 --- !u!1 &856856888
 GameObject:
   m_ObjectHideFlags: 0
@@ -17931,7 +18016,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GemFragment
   fragmentNumber: 2
-  unlocksCape: 1
+  unlocksCape: 0
   message: "\xA1Has obtenido la segunda parte de la Gema de Arcan\xEDa!"
   messageSeconds: 4
   damageBonus: 0
@@ -18058,8 +18143,8 @@ Transform:
   m_GameObject: {fileID: 2054003644}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 72.0199, y: 0.6694, z: 0}
-  m_LocalScale: {x: 4.222263, y: 5.121274, z: 1}
+  m_LocalPosition: {x: 71.9831, y: 0.4774, z: 0}
+  m_LocalScale: {x: 3.6091902, y: 4.267229, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

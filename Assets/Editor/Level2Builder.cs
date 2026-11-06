@@ -899,6 +899,7 @@ public static class Level2Builder
             GameObject bat = new GameObject("CaveBat_" + (i + 1));
             bat.transform.SetParent(enemyGroup.transform);
             bat.transform.position = batPositions[i];
+            bat.transform.localScale = new Vector3(2.2f, 2.2f, 1f);
             bat.layer = 8; // Enemy layer
             bat.tag = "Enemigo";
 
@@ -909,7 +910,7 @@ public static class Level2Builder
             sr.color = Color.white;
 
             CircleCollider2D col = bat.AddComponent<CircleCollider2D>();
-            col.radius = 0.45f;
+            col.radius = 0.35f;
             col.isTrigger = true;
 
             Rigidbody2D rb = bat.AddComponent<Rigidbody2D>();
@@ -1082,7 +1083,7 @@ public static class Level2Builder
             }
         }
 
-        // Cofre de recompensa secreto en la ruta baja
+        // Cofre de recompensa secreto en la ruta baja (otorga la Capa Arcana del 20% de protección)
         Sprite chestSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Cave Platformer Tileset/Individual PNG files/Tileset/objects_bigchest_animated/objects_bigchest_animated_0.png");
         if (chestSprite != null)
         {
@@ -1094,6 +1095,21 @@ public static class Level2Builder
             sr.sprite = chestSprite;
             sr.sortingLayerName = "Tilemap";
             sr.sortingOrder = 5;
+
+            CircleCollider2D col = chest.AddComponent<CircleCollider2D>();
+            col.isTrigger = true;
+            col.radius = 1.6f;
+
+            SecretChest chestScript = chest.AddComponent<SecretChest>();
+            List<Sprite> chestFrames = new List<Sprite>();
+            for (int i = 0; i < 28; i++)
+            {
+                Sprite frame = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Cave Platformer Tileset/Individual PNG files/Tileset/objects_bigchest_animated/objects_bigchest_animated_{i}.png");
+                if (frame != null) chestFrames.Add(frame);
+            }
+            chestScript.openSprites = chestFrames.ToArray();
+            chestScript.rewardMessage = "¡HAS ENCONTRADO LA CAPA ARCANA!\nTe protegerá en tu aventura reduciendo un 20% todo el daño recibido.";
+            EditorUtility.SetDirty(chestScript);
         }
     }
 
