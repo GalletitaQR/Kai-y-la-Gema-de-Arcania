@@ -23,9 +23,9 @@ public class CaveBat : MonoBehaviour, IEnemigo
     public float bobHeight = 0.35f;
 
     [Header("Detección y Ataque")]
-    public float detectionRange = 5.5f;
+    public float detectionRange = 6.2f;
     public float chaseSpeed = 3.2f;
-    public float attackRange = 1.1f;
+    public float attackRange = 1.4f;
     public int attackDamage = 12;
     public float attackCooldown = 1.2f;
     public LayerMask playerLayer;

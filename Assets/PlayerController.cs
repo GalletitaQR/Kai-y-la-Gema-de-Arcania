@@ -103,8 +103,23 @@ public class PlayerController : MonoBehaviour
         if (textoDano != null) textoDano.text = "";
         sr = GetComponent<SpriteRenderer>();
 
-        if (attackPoint != null)
-            attackPointDistance = Mathf.Abs(attackPoint.localPosition.x);
+        if (attackPoint == null)
+        {
+            Transform ap = transform.Find("AttackPoint");
+            if (ap != null)
+            {
+                attackPoint = ap;
+            }
+            else
+            {
+                GameObject apGo = new GameObject("AttackPoint");
+                apGo.transform.SetParent(transform, false);
+                apGo.transform.localPosition = new Vector3(0.85f, 0.35f, 0f);
+                attackPoint = apGo.transform;
+            }
+        }
+        attackPointDistance = Mathf.Abs(attackPoint.localPosition.x);
+        if (attackPointDistance < 0.2f) attackPointDistance = 0.85f;
 
         if (groundCheck == null)
         {
@@ -116,7 +131,24 @@ public class PlayerController : MonoBehaviour
         // Buscar el renderer del arma en la mano derecha de Kai
         InitWeaponRenderer();
 
-        // Si ya tenía el bastón o la capa desbloqueada por save, inicializar
+        // En Nivel 1 y Nivel 2 Kai inicia sin la capa (en Nivel 2 la debe descubrir en el Cofre Secreto)
+        string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentScene == "SampleScene" || currentScene == "Nivel2")
+        {
+            SaveSystem.HasCape = false;
+        }
+
+        // El objeto original 'Back' se apaga si aún no se tiene la capa, o se equipa si ya se desbloqueó
+        Transform back = FindBackTransform();
+        if (back != null)
+        {
+            SpriteRenderer srBack = back.GetComponent<SpriteRenderer>();
+            if (srBack != null)
+            {
+                srBack.enabled = SaveSystem.HasCape;
+            }
+        }
+
         if (SaveSystem.HasCape)
         {
             EquipCape();
@@ -265,34 +297,59 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator Attack()
     {
-        if (attackPoint == null)
-        {
-            Debug.LogWarning("PlayerController: 'Attack Point' no está asignado en el Inspector. Cancelando ataque.");
-            yield break; // No dejamos isAttacking en true si no podemos atacar
-        }
-
         isAttacking = true;
         currentState = PlayerState.ATTACK;
         spumPrefabs.PlayAnimation(currentState, 0);
         PlaySfx(Lib != null ? Lib.playerAttack : null);
 
-        yield return new WaitForSeconds(0.2f);
-
+        // Destello rápido en forma de arco cortante de espada
         Vector3 attackPosition = GetAttackPosition();
+        MagicFX.Burst(attackPosition, new Color(1f, 1f, 1f, 0.9f), 10, 0.25f);
 
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPosition, attackRange);
+        yield return new WaitForSeconds(0.12f);
+
+        attackPosition = GetAttackPosition();
+        float hitRadius = Mathf.Max(attackRange, 1.25f);
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPosition, hitRadius);
         System.Collections.Generic.HashSet<IEnemigo> damaged = new System.Collections.Generic.HashSet<IEnemigo>();
+
         foreach (Collider2D col in hitEnemies)
         {
+            if (col.transform.IsChildOf(transform) || col.gameObject == gameObject) continue;
+
             IEnemigo enemigo = col.GetComponentInParent<IEnemigo>();
             if (enemigo == null)
                 enemigo = col.GetComponent<IEnemigo>();
 
             if (enemigo != null && damaged.Add(enemigo))
+            {
                 enemigo.TakeDamage(attackDamage);
+
+                // Empuje al enemigo hacia donde mira Kai
+                Rigidbody2D erb = col.attachedRigidbody;
+                if (erb != null && erb.bodyType == RigidbodyType2D.Dynamic)
+                {
+                    erb.linearVelocity = new Vector2(facingDirection * 4f, 2f);
+                }
+            }
         }
 
-        yield return new WaitForSeconds(attackDuration - 0.2f);
+        // Verificación de respaldo alrededor de Kai por si el enemigo está muy pegado a su cuerpo
+        Collider2D[] closeEnemies = Physics2D.OverlapCircleAll(transform.position + Vector3.up * 0.35f, 0.85f);
+        foreach (Collider2D col in closeEnemies)
+        {
+            if (col.transform.IsChildOf(transform) || col.gameObject == gameObject) continue;
+
+            IEnemigo enemigo = col.GetComponentInParent<IEnemigo>();
+            if (enemigo == null) enemigo = col.GetComponent<IEnemigo>();
+
+            if (enemigo != null && damaged.Add(enemigo))
+            {
+                enemigo.TakeDamage(attackDamage);
+            }
+        }
+
+        yield return new WaitForSeconds(Mathf.Max(0.05f, attackDuration - 0.12f));
 
         isAttacking = false;
         currentState = isGrounded ? PlayerState.IDLE : PlayerState.MOVE;
@@ -360,9 +417,9 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 GetAttackPosition()
     {
-        Vector3 attackPosition = attackPoint.position;
-        attackPosition.x = transform.position.x + attackPointDistance * facingDirection;
-        return attackPosition;
+        float dist = attackPointDistance > 0.1f ? attackPointDistance : 0.85f;
+        float yOffset = attackPoint != null ? attackPoint.localPosition.y : 0.35f;
+        return transform.position + Vector3.right * (dist * facingDirection) + Vector3.up * yOffset;
     }
 
     public void TakeDamage(int amount, Transform attackerTransform = null)
@@ -375,6 +432,7 @@ public class PlayerController : MonoBehaviour
         {
             amount = Mathf.RoundToInt(amount * 0.8f);
             if (amount < 1) amount = 1;
+            MagicFX.Burst(transform.position + Vector3.up * 0.45f, new Color(0.70f, 0.35f, 1f, 0.65f), 8, 0.25f);
         }
 
         currentHealth -= amount;
@@ -503,49 +561,65 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>Equipa visualmente la capa protectora morada en Kai.</summary>
-    public void EquipCape()
+    public Transform FindBackTransform()
     {
-        if (visualCape != null) return;
-
-        // Buscar si SPUM ya tiene un objeto Back / Cape
-        Transform backTransform = null;
         foreach (Transform child in GetComponentsInChildren<Transform>(true))
         {
-            if (child.name == "Back" || child.name == "P_Back")
-            {
-                backTransform = child;
-                break;
-            }
+            if (child.name == "Back")
+                return child;
         }
+        return null;
+    }
 
-        if (backTransform != null)
+    /// <summary>Equipa visualmente la capa original ('Back') haciéndola un poco más grande y con brillo morado tenue.</summary>
+    public void EquipCape()
+    {
+        Transform back = FindBackTransform();
+        if (back != null)
         {
-            SpriteRenderer backRenderer = backTransform.GetComponent<SpriteRenderer>();
-            if (backRenderer != null)
+            // Coordenadas basadas en el inspector del usuario y escala ligeramente superior (original: 1.1628x, 1.2900y -> 1.30x, 1.45y)
+            back.localPosition = new Vector3(0.0565f, -0.0103f, 0f);
+            back.localScale = new Vector3(1.30f, 1.45f, 1f);
+
+            SpriteRenderer srBack = back.GetComponent<SpriteRenderer>();
+            if (srBack != null)
             {
-                // Cargar sprite Back_2
-                Sprite capeSprite = Resources.Load<Sprite>("Addons/Legacy/0_Unit/0_Sprite/7_Back/Back_2");
-                if (capeSprite != null)
-                    backRenderer.sprite = capeSprite;
-                backRenderer.color = new Color(0.7f, 0.4f, 1f, 1f); // Tinte morado arcano
-                backRenderer.enabled = true;
-                visualCape = backTransform.gameObject;
-                return;
+                srBack.enabled = true;
+                // Suave tinte morado arcano sobre el sprite original
+                srBack.color = new Color(0.92f, 0.75f, 1f, 1f);
             }
+
+            // Brillito morado moderado (no muy brillante ni muy opaco)
+            Transform existingGlow = back.Find("CapeMagicGlow");
+            if (existingGlow == null)
+            {
+                SpriteRenderer glowSr = MagicFX.AddGlow(back, new Color(0.68f, 0.32f, 0.95f, 0.40f), 1.22f, 0f);
+                glowSr.name = "CapeMagicGlow";
+                glowSr.sortingLayerName = "Player";
+                if (srBack != null)
+                    glowSr.sortingOrder = srBack.sortingOrder - 1; // Colocado detrás de la capa
+            }
+            else
+            {
+                existingGlow.gameObject.SetActive(true);
+            }
+
+            visualCape = back.gameObject;
         }
 
-        // Si no, crear aura/capa sutil como hijo
-        GameObject capeGo = new GameObject("ArcaneCape");
-        capeGo.transform.SetParent(transform, false);
-        capeGo.transform.localPosition = new Vector3(0f, 0.4f, 0.1f);
-        SpriteRenderer srCape = capeGo.AddComponent<SpriteRenderer>();
-        srCape.sprite = MagicFX.GlowSprite;
-        srCape.color = new Color(0.6f, 0.2f, 0.9f, 0.45f);
-        srCape.sortingLayerName = "Player";
-        srCape.sortingOrder = 1;
-        capeGo.transform.localScale = new Vector3(0.8f, 1.2f, 1f);
-        visualCape = capeGo;
+        ActualizarTextoDano();
+    }
+
+    public void StartInvincibility(float duration)
+    {
+        StartCoroutine(InvincibilityRoutine(duration));
+    }
+
+    private IEnumerator InvincibilityRoutine(float duration)
+    {
+        isInvincible = true;
+        yield return new WaitForSeconds(duration);
+        isInvincible = false;
     }
 
     /// <summary>Activa o desactiva el control del jugador (escenas guiadas como la del bastón).</summary>
@@ -634,7 +708,20 @@ public class PlayerController : MonoBehaviour
     void ActualizarTextoDano()
     {
         if (textoDano == null) return;
-        textoDano.text = "+" + bonusDano + " Damage";
+        string msg = "";
+        if (bonusDano > 0)
+            msg = "+" + bonusDano + " Daño";
+
+        if (SaveSystem.HasCape)
+        {
+            if (msg.Length > 0) msg += "  |  ";
+            msg += "🛡️ Capa: -20%";
+        }
+
+        if (string.IsNullOrEmpty(msg))
+            msg = "+0 Daño";
+
+        textoDano.text = msg;
         StopCoroutine("PulsoTexto");
         StartCoroutine("PulsoTexto");
     }
