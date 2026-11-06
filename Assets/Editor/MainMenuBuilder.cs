@@ -551,13 +551,13 @@ public static class MainMenuBuilder
 
     private static void EnsureEventSystem()
     {
-        if (Object.FindFirstObjectByType<EventSystem>() == null)
+        if (UnityEngine.Object.FindAnyObjectByType<EventSystem>() == null)
             EditorApplication.ExecuteMenuItem("GameObject/UI/Event System");
     }
 
     private static void EnsureMusicPlayer()
     {
-        AudioSource source = Object.FindFirstObjectByType<AudioSource>();
+        AudioSource source = UnityEngine.Object.FindAnyObjectByType<AudioSource>();
         if (source == null)
         {
             GameObject go = new GameObject("MusicPlayer");

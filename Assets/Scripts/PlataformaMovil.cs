@@ -19,14 +19,24 @@ public class PlataformaMovil : MonoBehaviour
 
     void Start()
     {
+        if (puntoA == null || puntoB == null)
+        {
+            Debug.LogWarning($"[PlataformaMovil] '{name}' no tiene puntoA o puntoB asignado. Desactivando movimiento.", this);
+            enabled = false;
+            return;
+        }
+
         posA = puntoA.position;
         posB = puntoB.position;
-        rb.position = posA;
+        if (rb != null) rb.position = posA;
+        else transform.position = posA;
         destino = posB;
     }
 
     void FixedUpdate()
     {
+        if (puntoA == null || puntoB == null || rb == null) return;
+
         Vector2 nueva = Vector2.MoveTowards(rb.position, destino, velocidad * Time.fixedDeltaTime);
         velocidadActual = (nueva - rb.position) / Time.fixedDeltaTime;
         rb.MovePosition(nueva);

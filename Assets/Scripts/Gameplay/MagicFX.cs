@@ -179,4 +179,58 @@ public static class MagicFX
             renderer.sortingOrder = 35 + orderOffset;
         }
     }
+
+    /// <summary>Genera una onda expansiva arcana visible que se expande y desvanece rápidamente.</summary>
+    public static void SpawnShockwave(Vector3 position, Color color, float maxRadius = 1.6f, float duration = 0.28f)
+    {
+        GameObject go = new GameObject("ArcaneShockwave");
+        go.transform.position = position;
+
+        SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = GlowSprite;
+        sr.color = color;
+        sr.sortingLayerName = FxSortingLayer;
+        sr.sortingOrder = 50;
+
+        go.AddComponent<ShockwaveRunner>().Init(color, maxRadius, duration);
+    }
+
+    private class ShockwaveRunner : MonoBehaviour
+    {
+        private Color baseColor;
+        private float maxRadius;
+        private float duration;
+        private float elapsed = 0f;
+        private SpriteRenderer sr;
+
+        public void Init(Color c, float radius, float dur)
+        {
+            baseColor = c;
+            maxRadius = radius;
+            duration = dur;
+            sr = GetComponent<SpriteRenderer>();
+            transform.localScale = Vector3.zero;
+        }
+
+        private void Update()
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+
+            float scale = Mathf.Lerp(0.2f, maxRadius * 2f, Mathf.Sqrt(t));
+            transform.localScale = new Vector3(scale, scale, 1f);
+
+            if (sr != null)
+            {
+                Color c = baseColor;
+                c.a = Mathf.Lerp(baseColor.a, 0f, t * t);
+                sr.color = c;
+            }
+
+            if (elapsed >= duration)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
 }

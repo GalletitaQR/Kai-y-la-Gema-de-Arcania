@@ -16,19 +16,19 @@ public class MagicBolt : MonoBehaviour
 
         SpriteRenderer renderer = go.AddComponent<SpriteRenderer>();
         renderer.sprite = MagicFX.GlowSprite;
-        renderer.color = new Color(0.7f, 0.35f, 1f, 1f);
+        renderer.color = new Color(0.75f, 0.35f, 1f, 1f);
         renderer.sortingLayerName = "Player";
         renderer.sortingOrder = 40;
-        go.transform.localScale = Vector3.one * 0.45f;
+        go.transform.localScale = Vector3.one * 0.6f;
 
         CircleCollider2D collider = go.AddComponent<CircleCollider2D>();
         collider.isTrigger = true;
-        collider.radius = 0.3f;
+        collider.radius = 0.42f;
 
         Rigidbody2D body = go.AddComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Kinematic;
         body.gravityScale = 0f;
-        body.linearVelocity = new Vector2(Mathf.Sign(direction) * 8f, 0f);
+        body.linearVelocity = new Vector2(Mathf.Sign(direction) * 9.5f, 0f);
 
         MagicBolt bolt = go.AddComponent<MagicBolt>();
         bolt.damage = damage;
@@ -45,6 +45,9 @@ public class MagicBolt : MonoBehaviour
             return;
 
         IEnemigo enemy = other.GetComponentInParent<IEnemigo>();
+        if (enemy == null)
+            enemy = other.GetComponent<IEnemigo>();
+
         if (enemy != null)
         {
             enemy.TakeDamage(damage);

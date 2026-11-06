@@ -44,6 +44,25 @@ public class PlayerController : MonoBehaviour
     public Vector2 knockbackForce = new Vector2(3f, 4f); // Fuerza hacia atrás y arriba
     public float knockbackDuration = 0.25f;
 
+    public enum ActiveWeapon
+    {
+        Sword,
+        Staff
+    }
+
+    [Header("Armas")]
+    public ActiveWeapon currentWeapon = ActiveWeapon.Sword;
+    public float magicCooldown = 0.35f;
+    private float nextMagicTime = 0f;
+    [Header("Onda Expansiva del Bastón")]
+    public float shockwaveRadius = 1.6f;
+    public float shockwaveKnockback = 4.0f;
+
+    [Header("Sprites de Armas (Visual)")]
+    public Sprite swordSprite;
+    public Sprite staffSprite;
+    private SpriteRenderer weaponRenderer;
+
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private SPUM_Prefabs spumPrefabs;
@@ -58,6 +77,7 @@ public class PlayerController : MonoBehaviour
     private float attackPointDistance;
     private Vector3 originalScale;
     public int cristales = 0;
+    private GameObject visualCape;
 
     public bool IsDead => isDead;
     public Rigidbody2D Body => rb;
@@ -85,6 +105,61 @@ public class PlayerController : MonoBehaviour
 
         if (attackPoint != null)
             attackPointDistance = Mathf.Abs(attackPoint.localPosition.x);
+
+        if (groundCheck == null)
+        {
+            Transform gc = transform.Find("GroundCheck");
+            if (gc != null) groundCheck = gc;
+            else groundCheck = transform;
+        }
+
+        // Buscar el renderer del arma en la mano derecha de Kai
+        InitWeaponRenderer();
+
+        // Si ya tenía el bastón o la capa desbloqueada por save, inicializar
+        if (SaveSystem.HasCape)
+        {
+            EquipCape();
+        }
+
+        UpdateWeaponUI();
+    }
+
+    void Start()
+    {
+        InitWeaponRenderer();
+        UpdateWeaponUI();
+    }
+
+    private void InitWeaponRenderer()
+    {
+        if (weaponRenderer == null)
+        {
+            foreach (Transform t in GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name == "R_Weapon")
+                {
+                    weaponRenderer = t.GetComponent<SpriteRenderer>();
+                    break;
+                }
+            }
+        }
+
+        if (weaponRenderer != null && swordSprite == null)
+        {
+            swordSprite = weaponRenderer.sprite;
+        }
+
+        if (staffSprite == null)
+        {
+            staffSprite = Resources.Load<Sprite>("staff");
+#if UNITY_EDITOR
+            if (staffSprite == null)
+            {
+                staffSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Generated/staff.png");
+            }
+#endif
+        }
     }
 
     void Update()
@@ -103,7 +178,13 @@ public class PlayerController : MonoBehaviour
         }
 
         float moveX = Input.GetAxisRaw("Horizontal");
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        Vector2 checkPos = groundCheck != null ? (Vector2)groundCheck.position : (Vector2)transform.position;
+        float checkRad = Mathf.Max(groundCheckRadius, 0.25f);
+        isGrounded = Physics2D.OverlapCircle(checkPos, checkRad, groundLayer);
+        if (!isGrounded)
+        {
+            isGrounded = Physics2D.OverlapBox((Vector2)transform.position + Vector2.down * 0.05f, new Vector2(0.35f, 0.15f), 0f, groundLayer);
+        }
 
         // Salto
         if (Input.GetButtonDown("Jump") && isGrounded && !isAttacking && !isKnockback)
@@ -113,10 +194,33 @@ public class PlayerController : MonoBehaviour
             PlaySfx(Lib != null ? Lib.playerJump : null);
         }
 
-        // Ataque
+        // Cambio de arma con C (solo si el bastón está desbloqueado)
+        if (Input.GetKeyDown(KeyCode.C) && !isAttacking && !isKnockback)
+        {
+            if (SaveSystem.HasStaff)
+            {
+                currentWeapon = (currentWeapon == ActiveWeapon.Sword) ? ActiveWeapon.Staff : ActiveWeapon.Sword;
+                UpdateWeaponUI();
+                PlaySfx(Lib != null ? Lib.buttonClick : null);
+            }
+        }
+
+        // Uso de arma con X
         if (Input.GetKeyDown(KeyCode.X) && !isAttacking && !isKnockback)
         {
-            StartCoroutine(Attack());
+            if (currentWeapon == ActiveWeapon.Staff && SaveSystem.HasStaff)
+            {
+                if (Time.time >= nextMagicTime)
+                {
+                    nextMagicTime = Time.time + magicCooldown;
+                    StartCoroutine(CastMagicRoutine());
+                }
+            }
+            else
+            {
+                // Ataque con espada
+                StartCoroutine(Attack());
+            }
         }
 
         // Dirección lógica sin rotar a Kai: el sprite actual mira de frente.
@@ -154,7 +258,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        float moveX = isAttacking ? 0f : Input.GetAxisRaw("Horizontal");
+        // En tierra se detiene durante el golpe cuerpo a cuerpo, pero en el aire conserva la inercia del salto
+        float moveX = (isAttacking && isGrounded) ? 0f : Input.GetAxisRaw("Horizontal");
         rb.linearVelocity = new Vector2(moveX * moveSpeed + velocidadPlataforma.x, rb.linearVelocity.y);
     }
 
@@ -175,24 +280,82 @@ public class PlayerController : MonoBehaviour
 
         Vector3 attackPosition = GetAttackPosition();
 
-        // El Bastón del Aprendiz permite lanzar magia a partir del Nivel 2.
-        if (SaveSystem.HasStaff && SceneManager.GetActiveScene().name == "Nivel2")
-        {
-            MagicBolt.Spawn(attackPosition, facingDirection, attackDamage);
-        }
-
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPosition, attackRange, enemyLayer);
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPosition, attackRange);
+        System.Collections.Generic.HashSet<IEnemigo> damaged = new System.Collections.Generic.HashSet<IEnemigo>();
         foreach (Collider2D col in hitEnemies)
         {
             IEnemigo enemigo = col.GetComponentInParent<IEnemigo>();
-            if (enemigo != null)
+            if (enemigo == null)
+                enemigo = col.GetComponent<IEnemigo>();
+
+            if (enemigo != null && damaged.Add(enemigo))
                 enemigo.TakeDamage(attackDamage);
         }
 
         yield return new WaitForSeconds(attackDuration - 0.2f);
 
         isAttacking = false;
-        currentState = PlayerState.IDLE;
+        currentState = isGrounded ? PlayerState.IDLE : PlayerState.MOVE;
+        spumPrefabs.PlayAnimation(currentState, 0);
+    }
+
+    IEnumerator CastMagicRoutine()
+    {
+        // 1. Onda Expansiva Arcana en 360° alrededor de Kai
+        Vector3 shockwaveCenter = transform.position + Vector3.up * 0.35f;
+        MagicFX.SpawnShockwave(shockwaveCenter, new Color(0.75f, 0.25f, 1f, 0.85f), shockwaveRadius, 0.26f);
+        MagicFX.Burst(shockwaveCenter, new Color(0.85f, 0.35f, 1f, 0.95f), 25, 0.45f);
+
+        // Dañar y repeler enemigos cercanos en 360° (evita que serpientes/slimes a corta distancia dañen a Kai)
+        Collider2D[] closeEnemies = Physics2D.OverlapCircleAll(shockwaveCenter, shockwaveRadius);
+        System.Collections.Generic.HashSet<IEnemigo> hitNearby = new System.Collections.Generic.HashSet<IEnemigo>();
+        foreach (Collider2D col in closeEnemies)
+        {
+            IEnemigo enemigo = col.GetComponentInParent<IEnemigo>();
+            if (enemigo == null) enemigo = col.GetComponent<IEnemigo>();
+
+            if (enemigo != null && hitNearby.Add(enemigo))
+            {
+                enemigo.TakeDamage(attackDamage);
+
+                // Empuje sutil (knockback) para despejar a enemigos cercanos
+                Rigidbody2D erb = col.attachedRigidbody;
+                if (erb != null && erb.bodyType == RigidbodyType2D.Dynamic)
+                {
+                    float pushX = Mathf.Sign(col.transform.position.x - transform.position.x);
+                    if (Mathf.Abs(col.transform.position.x - transform.position.x) < 0.1f)
+                        pushX = facingDirection;
+                    erb.linearVelocity = new Vector2(pushX * shockwaveKnockback, 2.5f);
+                }
+            }
+        }
+
+        // 2. Disparo frontal del proyectil MagicBolt (nace desde la mano de Kai sin saltarse enemigos)
+        Vector3 spawnPos = transform.position + Vector3.right * (0.35f * facingDirection) + Vector3.up * 0.35f;
+        MagicBolt.Spawn(spawnPos, facingDirection, attackDamage);
+        PlaySfx(Lib != null ? Lib.playerAttack : null);
+
+        // Mueve el arma y brazo de Kai con animación de ataque tanto en tierra como en el aire
+        spumPrefabs.PlayAnimation(PlayerState.ATTACK, 0);
+
+        if (isGrounded)
+        {
+            isAttacking = true;
+            yield return new WaitForSeconds(0.25f);
+            isAttacking = false;
+            currentState = PlayerState.IDLE;
+            spumPrefabs.PlayAnimation(currentState, 0);
+        }
+        else
+        {
+            // En el aire ejecuta la animación del ataque sin congelar el movimiento horizontal ni cancelar el salto
+            yield return new WaitForSeconds(0.25f);
+            if (!isGrounded)
+            {
+                currentState = PlayerState.MOVE;
+                spumPrefabs.PlayAnimation(currentState, 0);
+            }
+        }
     }
 
     private Vector3 GetAttackPosition()
@@ -206,6 +369,13 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead || isInvincible) return;
         if (GameManager.Instance != null && GameManager.Instance.State != GameState.Playing) return;
+
+        // La capa reduce el daño recibido un 20%
+        if (SaveSystem.HasCape)
+        {
+            amount = Mathf.RoundToInt(amount * 0.8f);
+            if (amount < 1) amount = 1;
+        }
 
         currentHealth -= amount;
         currentHealth = Mathf.Max(currentHealth, 0);
@@ -304,6 +474,78 @@ public class PlayerController : MonoBehaviour
     {
         if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
         if (GameManager.Instance != null) GameManager.Instance.SetPlayerHealth(currentHealth, maxHealth);
+    }
+
+    public void UpdateWeaponUI()
+    {
+        string weaponName = (currentWeapon == ActiveWeapon.Sword) ? "Espada" : "Bastón";
+        if (GameManager.Instance != null)
+            GameManager.Instance.SetPlayerWeapon(weaponName);
+
+        UpdateWeaponVisual();
+    }
+
+    public void UpdateWeaponVisual()
+    {
+        if (weaponRenderer == null)
+            InitWeaponRenderer();
+
+        if (weaponRenderer != null)
+        {
+            if (currentWeapon == ActiveWeapon.Staff && staffSprite != null)
+            {
+                weaponRenderer.sprite = staffSprite;
+            }
+            else if (currentWeapon == ActiveWeapon.Sword && swordSprite != null)
+            {
+                weaponRenderer.sprite = swordSprite;
+            }
+        }
+    }
+
+    /// <summary>Equipa visualmente la capa protectora morada en Kai.</summary>
+    public void EquipCape()
+    {
+        if (visualCape != null) return;
+
+        // Buscar si SPUM ya tiene un objeto Back / Cape
+        Transform backTransform = null;
+        foreach (Transform child in GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == "Back" || child.name == "P_Back")
+            {
+                backTransform = child;
+                break;
+            }
+        }
+
+        if (backTransform != null)
+        {
+            SpriteRenderer backRenderer = backTransform.GetComponent<SpriteRenderer>();
+            if (backRenderer != null)
+            {
+                // Cargar sprite Back_2
+                Sprite capeSprite = Resources.Load<Sprite>("Addons/Legacy/0_Unit/0_Sprite/7_Back/Back_2");
+                if (capeSprite != null)
+                    backRenderer.sprite = capeSprite;
+                backRenderer.color = new Color(0.7f, 0.4f, 1f, 1f); // Tinte morado arcano
+                backRenderer.enabled = true;
+                visualCape = backTransform.gameObject;
+                return;
+            }
+        }
+
+        // Si no, crear aura/capa sutil como hijo
+        GameObject capeGo = new GameObject("ArcaneCape");
+        capeGo.transform.SetParent(transform, false);
+        capeGo.transform.localPosition = new Vector3(0f, 0.4f, 0.1f);
+        SpriteRenderer srCape = capeGo.AddComponent<SpriteRenderer>();
+        srCape.sprite = MagicFX.GlowSprite;
+        srCape.color = new Color(0.6f, 0.2f, 0.9f, 0.45f);
+        srCape.sortingLayerName = "Player";
+        srCape.sortingOrder = 1;
+        capeGo.transform.localScale = new Vector3(0.8f, 1.2f, 1f);
+        visualCape = capeGo;
     }
 
     /// <summary>Activa o desactiva el control del jugador (escenas guiadas como la del bastón).</summary>

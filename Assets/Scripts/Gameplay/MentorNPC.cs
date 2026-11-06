@@ -49,7 +49,7 @@ public class MentorNPC : MonoBehaviour
                 transform.position = new Vector3(transform.position.x, hit.point.y, transform.position.z);
         }
 
-        PlayerController found = FindFirstObjectByType<PlayerController>();
+        PlayerController found = FindAnyObjectByType<PlayerController>();
         if (found != null)
             player = found.transform;
     }
