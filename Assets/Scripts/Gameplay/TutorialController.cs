@@ -39,9 +39,15 @@ public class TutorialController : MonoBehaviour
         if (panel != null)
             panel.SetActive(true);
 
-        yield return Step("Muévete con las flechas ← → o con A y D", () => Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1f, 0.5f);
-        yield return Step("Salta con la barra ESPACIO", () => Input.GetButtonDown("Jump"), 0.5f);
-        yield return Step("Ataca con la tecla X para golpear a los enemigos", () => Input.GetKeyDown(KeyCode.X), 0.5f);
+        yield return Step("Muévete con el Joystick, las flechas ← → o con A y D", () =>
+            Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1f ||
+            (VirtualControlsUI.Instance != null && Mathf.Abs(VirtualControlsUI.Instance.HorizontalAxis) > 0.1f), 0.5f);
+        yield return Step("Salta con el botón SALTAR o la barra ESPACIO", () =>
+            Input.GetButtonDown("Jump") ||
+            (VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.JumpPressedThisFrame), 0.5f);
+        yield return Step("Ataca con el botón ATACAR o la tecla X para golpear a los enemigos", () =>
+            Input.GetKeyDown(KeyCode.X) ||
+            (VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.AttackPressedThisFrame), 0.5f);
         yield return Step("Recoge los corazones para recuperar vida. Los cangrejos y murciélagos te quitan vida.", () => true, 5f);
         yield return Step("Pulsa ESC para pausar. Busca el fragmento de la Gema de Arcanía al final del bosque.", () => true, 5f);
 

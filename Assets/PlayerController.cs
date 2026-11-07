@@ -63,6 +63,11 @@ public class PlayerController : MonoBehaviour
     public Sprite staffSprite;
     private SpriteRenderer weaponRenderer;
 
+    [Header("Joystick Virtual en Pantalla")]
+    public bool usarJoystickEnPantalla = true;
+    [Tooltip("Si está activo, el joystick virtual solo se crea en SampleScene y Nivel2.")]
+    public bool soloEnSampleScene = false;
+
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private SPUM_Prefabs spumPrefabs;
@@ -161,6 +166,43 @@ public class PlayerController : MonoBehaviour
     {
         InitWeaponRenderer();
         UpdateWeaponUI();
+
+        if (usarJoystickEnPantalla)
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
+            if (!soloEnSampleScene || sceneName == "SampleScene" || sceneName == "Nivel2")
+            {
+                VirtualControlsUI.EnsureExists();
+            }
+        }
+    }
+
+    private float GetMoveHorizontal()
+    {
+        float moveX = Input.GetAxisRaw("Horizontal");
+        if (Mathf.Abs(moveX) < 0.01f && VirtualControlsUI.Instance != null)
+        {
+            moveX = VirtualControlsUI.Instance.HorizontalAxis;
+        }
+        return moveX;
+    }
+
+    private bool GetJumpDown()
+    {
+        if (Input.GetButtonDown("Jump")) return true;
+        return VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.JumpPressedThisFrame;
+    }
+
+    private bool GetAttackDown()
+    {
+        if (Input.GetKeyDown(KeyCode.X)) return true;
+        return VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.AttackPressedThisFrame;
+    }
+
+    private bool GetSwitchWeaponDown()
+    {
+        if (Input.GetKeyDown(KeyCode.C)) return true;
+        return VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.SwitchWeaponPressedThisFrame;
     }
 
     private void InitWeaponRenderer()
@@ -209,7 +251,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveX = GetMoveHorizontal();
         Vector2 checkPos = groundCheck != null ? (Vector2)groundCheck.position : (Vector2)transform.position;
         float checkRad = Mathf.Max(groundCheckRadius, 0.25f);
         isGrounded = Physics2D.OverlapCircle(checkPos, checkRad, groundLayer);
@@ -219,7 +261,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Salto
-        if (Input.GetButtonDown("Jump") && isGrounded && !isAttacking && !isKnockback)
+        if (GetJumpDown() && isGrounded && !isAttacking && !isKnockback)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             velocidadPlataforma = Vector2.zero;
@@ -227,7 +269,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Cambio de arma con C (solo si el bastón está desbloqueado)
-        if (Input.GetKeyDown(KeyCode.C) && !isAttacking && !isKnockback)
+        if (GetSwitchWeaponDown() && !isAttacking && !isKnockback)
         {
             if (SaveSystem.HasStaff)
             {
@@ -238,7 +280,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Uso de arma con X
-        if (Input.GetKeyDown(KeyCode.X) && !isAttacking && !isKnockback)
+        if (GetAttackDown() && !isAttacking && !isKnockback)
         {
             if (currentWeapon == ActiveWeapon.Staff && SaveSystem.HasStaff)
             {
@@ -291,7 +333,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // En tierra se detiene durante el golpe cuerpo a cuerpo, pero en el aire conserva la inercia del salto
-        float moveX = (isAttacking && isGrounded) ? 0f : Input.GetAxisRaw("Horizontal");
+        float moveX = (isAttacking && isGrounded) ? 0f : GetMoveHorizontal();
         rb.linearVelocity = new Vector2(moveX * moveSpeed + velocidadPlataforma.x, rb.linearVelocity.y);
     }
 
