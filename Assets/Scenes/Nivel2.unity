@@ -3477,7 +3477,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9def17815aae458f9bf887264464a48d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelPortal
-  nextSceneName: 
+  nextSceneName: Nivel3
   glowColor: {r: 0.75, g: 0.35, b: 1, a: 0.9}
   glowSize: 2.2
   walkSpeed: 2.2
