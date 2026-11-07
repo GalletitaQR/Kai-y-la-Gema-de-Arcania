@@ -31,23 +31,41 @@ public class GemFragment : MonoBehaviour
         MagicFX.AddSparkles(transform, glowColor, 0.3f, 14f);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (collected)
-            return;
+private void OnTriggerEnter2D(Collider2D other)
+{
+    if (collected)
+        return;
 
-        PlayerController player = other.GetComponentInParent<PlayerController>();
-        if (player == null)
+    // Buscamos directamente el componente en el objeto que colisiona o usando su etiqueta (Tag)
+    PlayerController player = other.GetComponent<PlayerController>();
+
+    // Si chocó un objeto hijo (como un sensor o espada), validamos que sea el jugador principal 
+    // y evitamos que áreas de ataque o sensores lejanos recojan la gema.
+    if (player == null)
+    {
+        player = other.GetComponentInParent<PlayerController>();
+        
+        // Si el colisionador que tocó la gema pertenece a una zona de ataque o hitbox lejana, la ignoramos
+        if (other.CompareTag("AttackSensor") || other.CompareTag("Hitbox"))
             return;
+    }
+
+    if (player == null)
+        return;
+
+    // OPCIONAL EXTRA: Validación de distancia real de seguridad (en unidades de Unity)
+    // Esto asegura que aunque un collider toque la gema, el centro de Kai esté a menos de 1.5 metros reales.
+    if (Vector2.Distance(transform.position, player.transform.position) > 1.5f)
+        return;
 
         // Seguridad estricta: Kai debe estar físicamente junto a la gema (<= 2.2 unidades).
         // Si la distancia es mayor (ej. saltos o checks al inicio del nivel), se descarta de inmediato.
         if (Vector2.Distance(transform.position, player.transform.position) > 2.2f)
             return;
 
-        collected = true;
-        Collect(player);
-    }
+    collected = true;
+    Collect(player);
+}
 
     private void Collect(PlayerController player)
     {
