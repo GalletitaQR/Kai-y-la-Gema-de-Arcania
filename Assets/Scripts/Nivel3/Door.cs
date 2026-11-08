@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Puerta interactiva con soporte para mensajes dinámicos (abierta/cerrada),
-/// teletransporte y gestión de audio.
+/// Puerta interactiva que transporta al jugador, muestra mensajes contextuales
+/// y cambia la música de fondo al cruzar (ideal para zonas como minijefes).
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class Door : MonoBehaviour
@@ -16,7 +16,9 @@ public class Door : MonoBehaviour
     [SerializeField] private AudioClip openClip;
     [SerializeField] private AudioClip closeClip;
     [SerializeField] private AudioClip lockedClip;
-    [SerializeField] private AudioClip newStageBGM; // Música opcional al cruzar
+    
+    [Header("Música de la Nueva Zona")]
+    [SerializeField] private AudioClip zoneMusic; // <--- Arrastra aquí la música del minijefe o nueva zona
 
     [Header("Opciones de Teletransporte")]
     [SerializeField] private Transform targetDoor; 
@@ -56,10 +58,13 @@ public class Door : MonoBehaviour
     {
         if (targetDoor != null && playerTransform != null)
         {
-            // Si quieres cambiar la música aquí, asegúrate de llamar al método correcto de tu AudioManager.
-            // Por ejemplo, si tu AudioManager usa otra función, cámbiala aquí. 
-            // Si no usas música por código aquí, puedes dejar esta parte comentada o adaptada a tu AudioManager.
-            
+            // 1. Cambiar la música de fondo si se asignó un AudioClip para esta zona
+            if (zoneMusic != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayMusic(zoneMusic);
+            }
+
+            // 2. Teletransportar al jugador a la puerta de destino
             playerTransform.position = targetDoor.position;
         }
         else
