@@ -15,17 +15,19 @@ MonoBehaviour:
   menuMusic: {fileID: 8300000, guid: 0ea9f9effbc4049f8b137f84c7b1d594, type: 3}
   level1Music: {fileID: 8300000, guid: a7562eaa159d641498049d05732a67eb, type: 3}
   level2Music: {fileID: 8300000, guid: 93393b6873d58465ca4324b07af606cd, type: 3}
+  level3Music: {fileID: 8300000, guid: 29fd0e22256b7b44893e91567f2d10d6, type: 3}
+  level4Music: {fileID: 0}
   buttonClick: {fileID: 8300000, guid: 52104bc3637e70540be457e0ba1ba9cd, type: 3}
   playerAttack: {fileID: 8300000, guid: ec831c2536d30374dbf768096ce241a9, type: 3}
   playerJump: {fileID: 8300000, guid: 632b1c41f6a368540970d173af4f782f, type: 3}
-  playerHurt: {fileID: 0}
+  playerHurt: {fileID: 8300000, guid: c750dd6839bcd2843930cb745926254b, type: 3}
   playerDeath: {fileID: 8300000, guid: 1b6741823a894264b94d6a62fc6d1b98, type: 3}
   enemyHit: {fileID: 0}
   enemyDeath: {fileID: 0}
-  heartPickup: {fileID: 0}
+  heartPickup: {fileID: 8300000, guid: 21b688388a1acf64ab111d503c6fca28, type: 3}
   gemFragmentPickup: {fileID: 8300000, guid: b9739a23b7f93e246a00581de45ab838, type: 3}
   staffPickup: {fileID: 8300000, guid: 588b9ca6cab609c4eb13ead25d0024f3, type: 3}
-  magicBolt: {fileID: 8300000, guid: 588b9ca6cab609c4eb13ead25d0024f3, type: 3}
+  magicBolt: {fileID: 8300000, guid: f5a3af329fd6304488efb92ea922491b, type: 3}
   victory: {fileID: 0}
   gameOver: {fileID: 8300000, guid: 519d7a569f3186946bb0e064d3fc6924, type: 3}
-  pause: {fileID: 8300000, guid: 9b556f348ae694f55b4dc3ed51971a64, type: 3}
+  pause: {fileID: 0}

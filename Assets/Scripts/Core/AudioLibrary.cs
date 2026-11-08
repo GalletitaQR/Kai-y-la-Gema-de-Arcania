@@ -12,6 +12,8 @@ public class AudioLibrary : ScriptableObject
     public AudioClip menuMusic;
     public AudioClip level1Music;
     public AudioClip level2Music;
+    public AudioClip level3Music; // <--- Nuevo Nivel 3
+    public AudioClip level4Music; // <--- Nuevo Nivel 4
 
     [Header("Interfaz")]
     [Tooltip("Se reproduce al hacer clic en CUALQUIER boton de cualquier menu")]
@@ -26,7 +28,7 @@ public class AudioLibrary : ScriptableObject
     public AudioClip playerDeath;
 
     [Header("Enemigos")]
-    [Tooltip("Cuando Kai le pega a un enemigo")]
+    [Tooltip("Когда Kai le pega a un enemigo")]
     public AudioClip enemyHit;
     public AudioClip enemyDeath;
 
