@@ -40,6 +40,20 @@ public class PlayerController : MonoBehaviour
     public int attackDamage = 50; // Igual o mayor a maxHealth del cangrejo (50) para matarlo de un golpe
     public LayerMask enemyLayer;
 
+    [Header("Ataques de Espada con Hitbox Temporal (Nivel 4)")]
+    [Tooltip("Tecla para el nuevo tajo horizontal (barrido lateral más ancho y bajo). También funciona con J.")]
+    public KeyCode horizontalAttackKey = KeyCode.Z;
+    public KaiSwordHitbox verticalSwordHitbox;
+    public KaiSwordHitbox horizontalSwordHitbox;
+    public Vector2 verticalHitboxLocalPos = new Vector2(0.85f, 0.45f);
+    public Vector2 verticalHitboxSize = new Vector2(1.25f, 1.35f);
+    public Vector2 horizontalHitboxLocalPos = new Vector2(1.15f, 0.22f);
+    public Vector2 horizontalHitboxSize = new Vector2(2.15f, 0.72f);
+
+    [Header("Checkpoint Activo")]
+    public bool hasCheckpoint = false;
+    public Vector3 lastCheckpointPosition;
+
     [Header("Retroceso por Golpe (Knockback)")]
     public Vector2 knockbackForce = new Vector2(3f, 4f); // Fuerza hacia atrás y arriba
     public float knockbackDuration = 0.25f;
@@ -140,9 +154,17 @@ public class PlayerController : MonoBehaviour
 
         // Buscar el renderer del arma en la mano derecha de Kai
         InitWeaponRenderer();
+        EnsureSwordHitboxes();
+
+        // En Nivel 3 y Nivel 4 Kai ya cuenta con el bastón y la capa desbloqueados
+        string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentScene == "Nivel3" || currentScene == "Nivel4")
+        {
+            SaveSystem.HasStaff = true;
+            SaveSystem.HasCape = true;
+        }
 
         // En Nivel 1 y Nivel 2 Kai inicia sin la capa (en Nivel 2 la debe descubrir en el Cofre Secreto)
-        string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentScene == "SampleScene" || currentScene == "Nivel2")
         {
             SaveSystem.HasCape = false;
@@ -175,10 +197,54 @@ public class PlayerController : MonoBehaviour
         if (usarJoystickEnPantalla)
         {
             string sceneName = SceneManager.GetActiveScene().name;
-            if (!soloEnSampleScene || sceneName == "SampleScene" || sceneName == "Nivel2")
-            if (!soloEnSampleScene || sceneName == "SampleScene" || sceneName == "Nivel1" || sceneName == "Nivel2" || sceneName == "Nivel3")
+            if (!soloEnSampleScene || sceneName == "SampleScene" || sceneName == "Nivel1" || sceneName == "Nivel2" || sceneName == "Nivel3" || sceneName == "Nivel4")
             {
                 VirtualControlsUI.EnsureExists();
+            }
+        }
+    }
+
+    private void EnsureSwordHitboxes()
+    {
+        if (verticalSwordHitbox == null)
+        {
+            Transform vh = transform.Find("SwordHitbox_Vertical");
+            if (vh != null)
+            {
+                verticalSwordHitbox = vh.GetComponent<KaiSwordHitbox>();
+            }
+            if (verticalSwordHitbox == null)
+            {
+                GameObject go = new GameObject("SwordHitbox_Vertical");
+                go.layer = gameObject.layer;
+                go.transform.SetParent(transform, false);
+                go.transform.localPosition = new Vector3(verticalHitboxLocalPos.x, verticalHitboxLocalPos.y, 0f);
+                BoxCollider2D bc = go.AddComponent<BoxCollider2D>();
+                bc.isTrigger = true;
+                bc.size = verticalHitboxSize;
+                bc.enabled = false;
+                verticalSwordHitbox = go.AddComponent<KaiSwordHitbox>();
+            }
+        }
+
+        if (horizontalSwordHitbox == null)
+        {
+            Transform hh = transform.Find("SwordHitbox_Horizontal");
+            if (hh != null)
+            {
+                horizontalSwordHitbox = hh.GetComponent<KaiSwordHitbox>();
+            }
+            if (horizontalSwordHitbox == null)
+            {
+                GameObject go = new GameObject("SwordHitbox_Horizontal");
+                go.layer = gameObject.layer;
+                go.transform.SetParent(transform, false);
+                go.transform.localPosition = new Vector3(horizontalHitboxLocalPos.x, horizontalHitboxLocalPos.y, 0f);
+                BoxCollider2D bc = go.AddComponent<BoxCollider2D>();
+                bc.isTrigger = true;
+                bc.size = horizontalHitboxSize;
+                bc.enabled = false;
+                horizontalSwordHitbox = go.AddComponent<KaiSwordHitbox>();
             }
         }
     }
@@ -203,6 +269,11 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.X)) return true;
         return VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.AttackPressedThisFrame;
+    }
+
+    private bool GetHorizontalAttackDown()
+    {
+        return Input.GetKeyDown(horizontalAttackKey) || Input.GetKeyDown(KeyCode.J);
     }
 
     private bool GetSwitchWeaponDown()
@@ -285,7 +356,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Uso de arma con X
+        // Uso de arma con X (golpe de espada vertical hacia abajo o bastón)
         if (GetAttackDown() && !isAttacking && !isKnockback)
         {
             if (currentWeapon == ActiveWeapon.Staff && SaveSystem.HasStaff)
@@ -298,9 +369,15 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                // Ataque con espada
+                // Ataque con espada vertical (actual)
                 StartCoroutine(Attack());
             }
+        }
+
+        // Nuevo ataque de espada: Tajo horizontal / barrido lateral en tecla Z (o J)
+        if (GetHorizontalAttackDown() && !isAttacking && !isKnockback)
+        {
+            StartCoroutine(HorizontalSlashAttack());
         }
 
         // Dirección lógica sin rotar a Kai: el sprite actual mira de frente.
@@ -354,7 +431,13 @@ public class PlayerController : MonoBehaviour
         Vector3 attackPosition = GetAttackPosition();
         MagicFX.Burst(attackPosition, new Color(1f, 1f, 1f, 0.9f), 10, 0.25f);
 
-        yield return new WaitForSeconds(0.12f);
+        yield return new WaitForSeconds(0.10f);
+
+        // Activar hitbox trigger temporal del ataque vertical
+        if (verticalSwordHitbox != null)
+        {
+            verticalSwordHitbox.ActivateHitbox(verticalHitboxLocalPos, verticalHitboxSize, attackDamage, facingDirection, 4f, 2f);
+        }
 
         attackPosition = GetAttackPosition();
         float hitRadius = Mathf.Max(attackRange, 1.25f);
@@ -397,7 +480,70 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        yield return new WaitForSeconds(Mathf.Max(0.05f, attackDuration - 0.12f));
+        yield return new WaitForSeconds(Mathf.Max(0.08f, attackDuration - 0.10f));
+
+        if (verticalSwordHitbox != null)
+        {
+            verticalSwordHitbox.DeactivateHitbox();
+        }
+
+        isAttacking = false;
+        currentState = isGrounded ? PlayerState.IDLE : PlayerState.MOVE;
+        spumPrefabs.PlayAnimation(currentState, 0);
+    }
+
+    /// <summary>
+    /// Variante del ataque de espada en otra tecla (Z / J):
+    /// Tajo horizontal (barrido lateral) con hitbox temporal más ancha y baja.
+    /// </summary>
+    IEnumerator HorizontalSlashAttack()
+    {
+        isAttacking = true;
+        currentState = PlayerState.ATTACK;
+        spumPrefabs.PlayAnimation(currentState, 0);
+        PlaySfx(Lib != null ? Lib.playerAttack : null);
+
+        // Efecto visual de barrido horizontal ancho y bajo frente a Kai
+        Vector3 sweepCenter = transform.position + new Vector3(facingDirection * horizontalHitboxLocalPos.x, horizontalHitboxLocalPos.y, 0f);
+        MagicFX.Burst(sweepCenter, new Color(0.75f, 0.92f, 1f, 0.95f), 14, 0.32f);
+        MagicFX.Burst(sweepCenter + new Vector3(facingDirection * 0.55f, 0f, 0f), new Color(0.55f, 0.85f, 1f, 0.9f), 10, 0.25f);
+
+        yield return new WaitForSeconds(0.08f);
+
+        // Activar hitbox trigger temporal ancha y baja (solo activa durante el barrido)
+        if (horizontalSwordHitbox != null)
+        {
+            horizontalSwordHitbox.ActivateHitbox(horizontalHitboxLocalPos, horizontalHitboxSize, attackDamage, facingDirection, 5.5f, 1.2f);
+        }
+
+        // Respaldo con OverlapBox ancho y bajo para alcanzar arañas y enemigos en fila
+        Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(sweepCenter, horizontalHitboxSize, 0f);
+        System.Collections.Generic.HashSet<IEnemigo> damaged = new System.Collections.Generic.HashSet<IEnemigo>();
+
+        foreach (Collider2D col in hitEnemies)
+        {
+            if (col.transform.IsChildOf(transform) || col.gameObject == gameObject) continue;
+
+            IEnemigo enemigo = col.GetComponentInParent<IEnemigo>();
+            if (enemigo == null) enemigo = col.GetComponent<IEnemigo>();
+
+            if (enemigo != null && damaged.Add(enemigo))
+            {
+                enemigo.TakeDamage(attackDamage);
+                Rigidbody2D erb = col.attachedRigidbody;
+                if (erb != null && erb.bodyType == RigidbodyType2D.Dynamic)
+                {
+                    erb.linearVelocity = new Vector2(facingDirection * 5.5f, 1.2f);
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(Mathf.Max(0.12f, attackDuration - 0.08f));
+
+        if (horizontalSwordHitbox != null)
+        {
+            horizontalSwordHitbox.DeactivateHitbox();
+        }
 
         isAttacking = false;
         currentState = isGrounded ? PlayerState.IDLE : PlayerState.MOVE;
@@ -526,6 +672,15 @@ public class PlayerController : MonoBehaviour
 
     void Die()
     {
+        if (verticalSwordHitbox != null) verticalSwordHitbox.DeactivateHitbox();
+        if (horizontalSwordHitbox != null) horizontalSwordHitbox.DeactivateHitbox();
+
+        if (hasCheckpoint)
+        {
+            StartCoroutine(RespawnAtCheckpointRoutine());
+            return;
+        }
+
         isDead = true;
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Static;
@@ -535,6 +690,38 @@ public class PlayerController : MonoBehaviour
 
         if (GameManager.Instance != null)
             GameManager.Instance.OnPlayerDied();
+    }
+
+    public void SetCheckpoint(Vector3 checkpointPosition)
+    {
+        hasCheckpoint = true;
+        lastCheckpointPosition = checkpointPosition;
+    }
+
+    private IEnumerator RespawnAtCheckpointRoutine()
+    {
+        isDead = true;
+        isAttacking = false;
+        isKnockback = false;
+        rb.linearVelocity = Vector2.zero;
+        rb.bodyType = RigidbodyType2D.Static;
+        currentState = PlayerState.DEATH;
+        spumPrefabs.PlayAnimation(currentState, 0);
+        PlaySfx(Lib != null ? Lib.playerDeath : null);
+
+        yield return new WaitForSeconds(1.1f);
+
+        transform.position = lastCheckpointPosition;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.linearVelocity = Vector2.zero;
+        currentHealth = maxHealth;
+        UpdateHealthUI();
+
+        isDead = false;
+        currentState = PlayerState.IDLE;
+        spumPrefabs.PlayAnimation(currentState, 0);
+        StartInvincibility(1.5f);
+        MagicFX.Burst(transform.position + Vector3.up * 0.5f, new Color(0.35f, 0.85f, 1f, 0.9f), 18, 0.4f);
     }
 
     void OnTriggerEnter2D(Collider2D other)
