@@ -11,6 +11,7 @@ public class GemFragment : MonoBehaviour
     [Header("Fragmento")]
     public int fragmentNumber = 1;
     public bool unlocksCape = false;
+    public bool completesLevel = false;
     [TextArea]
     public string message = "¡Has obtenido el primer fragmento de la Gema de Arcanía!";
     public float messageSeconds = 4f;
@@ -27,22 +28,42 @@ public class GemFragment : MonoBehaviour
 
     private void Awake()
     {
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null)
+        {
+            col.isTrigger = true;
+            if (col is BoxCollider2D box && (box.size.x < 0.8f || box.size.y < 0.8f))
+            {
+                box.size = new Vector2(Mathf.Max(box.size.x, 0.9f), Mathf.Max(box.size.y, 0.9f));
+            }
+        }
+
         MagicFX.AddGlow(transform, glowColor, glowSize);
         MagicFX.AddSparkles(transform, glowColor, 0.3f, 14f);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        TryCollect(other);
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        TryCollect(other);
+    }
+
+    private void TryCollect(Collider2D other)
+    {
         if (collected)
             return;
 
-        // Buscar el controlador del jugador en el objeto o en sus padres (ignora hitboxes hijas si se configuran bien)
         PlayerController player = other.GetComponentInParent<PlayerController>();
+        if (player == null)
+            player = other.GetComponent<PlayerController>();
         if (player == null)
             return;
 
-        // Seguridad estricta: Kai debe estar físicamente junto a la gema (<= 2.2 unidades)
-        if (Vector2.Distance(transform.position, player.transform.position) > 2.2f)
+        if (Vector2.Distance(transform.position, player.transform.position) > 3.0f)
             return;
 
         collected = true;
@@ -70,6 +91,11 @@ public class GemFragment : MonoBehaviour
 
         if (MessageBanner.Instance != null)
             MessageBanner.Instance.Show(message, messageSeconds);
+
+        if ((completesLevel || fragmentNumber >= 3) && GameManager.Instance != null)
+        {
+            GameManager.Instance.CompleteLevel();
+        }
 
         Destroy(gameObject);
     }

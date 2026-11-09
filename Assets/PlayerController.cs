@@ -99,6 +99,11 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
+        if (GameManager.Instance == null && GameObject.Find("GameUI") != null)
+        {
+            GameManager.EnsureExists();
+        }
+
         rb = GetComponent<Rigidbody2D>();
         spumPrefabs = GetComponent<SPUM_Prefabs>();
         spumPrefabs.OverrideControllerInit();
@@ -171,6 +176,7 @@ public class PlayerController : MonoBehaviour
         {
             string sceneName = SceneManager.GetActiveScene().name;
             if (!soloEnSampleScene || sceneName == "SampleScene" || sceneName == "Nivel2")
+            if (!soloEnSampleScene || sceneName == "SampleScene" || sceneName == "Nivel1" || sceneName == "Nivel2" || sceneName == "Nivel3")
             {
                 VirtualControlsUI.EnsureExists();
             }

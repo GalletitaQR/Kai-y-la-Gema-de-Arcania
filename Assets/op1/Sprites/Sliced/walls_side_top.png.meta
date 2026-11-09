@@ -5,7 +5,7 @@ AssetOrigin:
   productId: 135397
   packageName: Pixel 2D Castle Tileset
   packageVersion: 1.0
-  assetPath: Assets/Pixel2DCastleTileset/Sprites/Sliced/walls_side_top.png
+  assetPath: Assets/op1/Sprites/Sliced/walls_side_top.png
   uploadId: 283620
 TextureImporter:
   internalIDToNameTable:
@@ -1225,7 +1225,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   - serializedVersion: 4
-    buildTarget: Android
+    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -1238,7 +1238,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   - serializedVersion: 4
-    buildTarget: WebGL
+    buildTarget: WindowsStoreApps
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1

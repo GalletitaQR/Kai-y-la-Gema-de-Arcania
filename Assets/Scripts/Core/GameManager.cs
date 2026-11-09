@@ -64,12 +64,30 @@ public class GameManager : MonoBehaviour
     public bool IsPlaying => State == GameState.Playing;
     public bool IsStartMenuOpen { get; private set; }
 
+    public static GameManager EnsureExists()
+    {
+        if (Instance != null)
+            return Instance;
+
+        GameManager existing = FindFirstObjectByType<GameManager>();
+        if (existing != null)
+            return existing;
+
+        GameObject go = new GameObject("GameManager");
+        return go.AddComponent<GameManager>();
+    }
+
     private void Awake()
     {
         Instance = this;
         Time.timeScale = 1f;
 
-        if (SkipStartMenuOnce)
+        AutoWireIfNeeded();
+
+        string activeScene = SceneManager.GetActiveScene().name;
+        bool isFirstLevel = activeScene == "SampleScene" || activeScene == "Nivel1";
+
+        if (SkipStartMenuOnce || !isFirstLevel)
         {
             SkipStartMenuOnce = false;
             IsStartMenuOpen = false;
@@ -88,6 +106,49 @@ public class GameManager : MonoBehaviour
         Bind(playAgainButton, PlayAgain);
         Bind(gameOverMenuButton, GoToMenu);
         Bind(nextLevelButton, GoToNextLevel);
+    }
+
+    private void AutoWireIfNeeded()
+    {
+        GameObject gameUi = GameObject.Find("GameUI");
+        if (gameUi == null)
+            return;
+
+        Transform root = gameUi.transform;
+
+        if (lifeText == null) lifeText = FindComp<TextMeshProUGUI>(root, "HUD/LifeText");
+        if (scoreText == null) scoreText = FindComp<TextMeshProUGUI>(root, "HUD/ScoreText");
+        if (timeText == null) timeText = FindComp<TextMeshProUGUI>(root, "HUD/TimeText");
+        if (weaponText == null) weaponText = FindComp<TextMeshProUGUI>(root, "HUD/WeaponText");
+
+        if (pausePanel == null) pausePanel = FindGo(root, "PausePanel");
+        if (optionsPanel == null) optionsPanel = FindGo(root, "OptionsPanel");
+        if (resumeButton == null) resumeButton = FindComp<Button>(root, "PausePanel/ResumeButton");
+        if (restartButton == null) restartButton = FindComp<Button>(root, "PausePanel/RestartButton");
+        if (optionsButton == null) optionsButton = FindComp<Button>(root, "PausePanel/OptionsButton");
+        if (quitButton == null) quitButton = FindComp<Button>(root, "PausePanel/QuitButton");
+
+        if (gameOverPanel == null) gameOverPanel = FindGo(root, "GameOverPanel");
+        if (retryButton == null) retryButton = FindComp<Button>(root, "GameOverPanel/RetryButton");
+        if (playAgainButton == null) playAgainButton = FindComp<Button>(root, "GameOverPanel/PlayAgainButton");
+        if (gameOverMenuButton == null) gameOverMenuButton = FindComp<Button>(root, "GameOverPanel/MenuButton");
+
+        if (victoryPanel == null) victoryPanel = FindGo(root, "VictoryPanel");
+        if (victoryScoreText == null) victoryScoreText = FindComp<TextMeshProUGUI>(root, "VictoryPanel/ScoreText");
+        if (victoryTimeText == null) victoryTimeText = FindComp<TextMeshProUGUI>(root, "VictoryPanel/TimeText");
+        if (nextLevelButton == null) nextLevelButton = FindComp<Button>(root, "VictoryPanel/NextLevelButton");
+    }
+
+    private static GameObject FindGo(Transform root, string relativePath)
+    {
+        Transform t = root.Find(relativePath);
+        return t != null ? t.gameObject : null;
+    }
+
+    private static T FindComp<T>(Transform root, string relativePath) where T : Component
+    {
+        Transform t = root.Find(relativePath);
+        return t != null ? t.GetComponent<T>() : null;
     }
 
     private void Start()
