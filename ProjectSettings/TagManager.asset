@@ -8,6 +8,7 @@ TagManager:
   - Citrico
   - Gema
   - Agua
+  - Enemigo
   layers:
   - Default
   - TransparentFX
@@ -18,7 +19,7 @@ TagManager:
   - Ground
   - Player
   - Enemy
-  - 
+  - BossRoom
   - 
   - 
   - 
