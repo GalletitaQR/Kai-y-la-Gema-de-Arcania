@@ -42,7 +42,7 @@ public class HazardZone : MonoBehaviour
         }
         else
         {
-            player.TakeDamage(damage, transform.position);
+            player.TakeDamage(damage, transform);
         }
     }
 }
