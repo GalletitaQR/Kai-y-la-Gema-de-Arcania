@@ -698,6 +698,13 @@ public class PlayerController : MonoBehaviour
         lastCheckpointPosition = checkpointPosition;
     }
 
+    public void Heal(int amount)
+    {
+        if (isDead || amount <= 0) return;
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        UpdateHealthUI();
+    }
+
     private IEnumerator RespawnAtCheckpointRoutine()
     {
         isDead = true;
