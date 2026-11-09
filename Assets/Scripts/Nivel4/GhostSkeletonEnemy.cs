@@ -271,3 +271,4 @@ public class GhostSkeletonEnemy : MonoBehaviour, IEnemigo
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }
+

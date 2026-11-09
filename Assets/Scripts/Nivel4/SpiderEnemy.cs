@@ -250,3 +250,4 @@ public class SpiderEnemy : MonoBehaviour, IEnemigo
         Gizmos.DrawWireSphere(transform.position, biteRange);
     }
 }
+

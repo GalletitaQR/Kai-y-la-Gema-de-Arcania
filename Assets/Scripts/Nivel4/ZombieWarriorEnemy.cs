@@ -330,3 +330,4 @@ public class ZombieWarriorEnemy : MonoBehaviour, IEnemigo
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }
+

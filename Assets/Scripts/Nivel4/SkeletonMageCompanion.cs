@@ -254,3 +254,4 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
         Destroy(gameObject, 1.25f);
     }
 }
+
