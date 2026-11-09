@@ -991,6 +991,8 @@ public class DarkKnightBoss : MonoBehaviour, IEnemigo
     }
 
     // =============================================================== MUERTE
+    [SerializeField] private BossDoor bossDoor;
+
     void Die()
     {
         state = State.Dead;
@@ -1011,6 +1013,10 @@ public class DarkKnightBoss : MonoBehaviour, IEnemigo
             player.SendMessage(scoreMethodName, scoreValue, SendMessageOptions.DontRequireReceiver);
 
         StartCoroutine(DeathRoutine());
+        if (bossDoor != null)
+    {
+        bossDoor.Open();
+    }
     }
 
     IEnumerator DeathRoutine()
