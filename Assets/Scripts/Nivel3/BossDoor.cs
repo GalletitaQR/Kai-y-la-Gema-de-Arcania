@@ -1,9 +1,7 @@
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Puerta de jefe que inicia cerrada y se abre automáticamente 
-/// o mediante una llamada cuando el jefe es derrotado.
-/// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class BossDoor : MonoBehaviour
 {
@@ -16,13 +14,18 @@ public class BossDoor : MonoBehaviour
     [SerializeField] private AudioClip openClip;
     [SerializeField] private AudioClip closeClip;
     [SerializeField] private AudioClip lockedClip;
-    
-    [Header("Música de la Nueva Zona")]
-    [SerializeField] private AudioClip zoneMusic; // <--- Arrastra aquí la música de la siguiente zona
 
-    [Header("Opciones de Teletransporte")]
-    [SerializeField] private Transform targetDoor; 
+    [Header("Música de la Nueva Zona")]
+    [SerializeField] private AudioClip zoneMusic;
+
+    [Header("Escena de destino")]
+    [Tooltip("Nombre exacto de la escena (debe estar en Build Settings)")]
+    [SerializeField] private string targetScene = "Nivel3";
+    [Tooltip("Segundos de espera antes de cargar la escena")]
+    [SerializeField] private float sceneLoadDelay = 0.5f;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
+    [Tooltip("Evento extra al cruzar (ej. secuencia de victoria)")]
+    public UnityEvent onPlayerCross;
 
     [Header("Mensajes de Texto")]
     [SerializeField] private string playerTag = "Player";
@@ -34,7 +37,7 @@ public class BossDoor : MonoBehaviour
     public bool IsOpen { get; private set; }
 
     private bool playerInside;
-    private Transform playerTransform;
+    private bool crossing;
 
     private void Reset()
     {
@@ -43,49 +46,49 @@ public class BossDoor : MonoBehaviour
 
     private void Start()
     {
-        // Al iniciar la escena, la puerta empieza cerrada (jefe vivo)
         SetState(false, false);
     }
 
     private void Update()
     {
-        if (playerInside && IsOpen && Input.GetKeyDown(interactKey))
+        if (playerInside && IsOpen && !crossing && Input.GetKeyDown(interactKey))
         {
-            TeleportPlayer();
+            Cross();
         }
     }
 
-    private void TeleportPlayer()
+    private void Cross()
     {
-        if (targetDoor != null && playerTransform != null)
+        if (string.IsNullOrEmpty(targetScene))
         {
-            // 1. Cambiar la música de fondo si se asignó un AudioClip para esta zona
-            if (zoneMusic != null && AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlayMusic(zoneMusic);
-            }
+            Debug.LogWarning("Falta asignar Target Scene en la puerta.", this);
+            return;
+        }
 
-            // 2. Teletransportar al jugador a la puerta de destino
-            playerTransform.position = targetDoor.position;
-        }
-        else
-        {
-            Debug.LogWarning("Falta asignar el Target Door (destino) o no se encontró al jugador.", this);
-        }
+        crossing = true;
+        HintUI.Hide(this);
+        onPlayerCross?.Invoke();
+
+        if (zoneMusic != null && AudioManager.Instance != null)
+            AudioManager.Instance.PlayMusic(zoneMusic);
+
+        Invoke(nameof(LoadScene), sceneLoadDelay);
     }
 
-    /// <summary>
-    /// Abre la puerta al derrotar al jefe. Puedes llamarlo desde el script del jefe (ej. Boss.OnDeath += door.Open).
-    /// </summary>
+    private void LoadScene()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(targetScene);
+    }
+
+    /// <summary>Lo llama el jefe al morir (DarkKnightBoss.Die → bossDoor.Open()).</summary>
     public void Open()
     {
         if (IsOpen) return;
         SetState(true, true);
 
         if (playerInside && HintUI.Instance != null)
-        {
             HintUI.Show(this, openMessage);
-        }
     }
 
     public void Close()
@@ -94,9 +97,7 @@ public class BossDoor : MonoBehaviour
         SetState(false, true);
 
         if (playerInside && HintUI.Instance != null)
-        {
             HintUI.Show(this, lockedMessage);
-        }
     }
 
     private void SetState(bool open, bool playSound)
@@ -117,7 +118,6 @@ public class BossDoor : MonoBehaviour
     {
         if (!other.CompareTag(playerTag)) return;
         playerInside = true;
-        playerTransform = other.transform;
 
         if (HintUI.Instance != null)
         {
@@ -137,7 +137,6 @@ public class BossDoor : MonoBehaviour
     {
         if (!other.CompareTag(playerTag)) return;
         playerInside = false;
-        playerTransform = null;
         HintUI.Hide(this);
     }
 }

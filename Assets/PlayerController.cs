@@ -367,12 +367,7 @@ public class PlayerController : MonoBehaviour
             {
                 enemigo.TakeDamage(attackDamage);
 
-                // Empuje al enemigo hacia donde mira Kai
-                Rigidbody2D erb = col.attachedRigidbody;
-                if (erb != null && erb.bodyType == RigidbodyType2D.Dynamic)
-                {
-                    erb.linearVelocity = new Vector2(facingDirection * 4f, 2f);
-                }
+                
             }
         }
 
@@ -416,16 +411,6 @@ public class PlayerController : MonoBehaviour
             if (enemigo != null && hitNearby.Add(enemigo))
             {
                 enemigo.TakeDamage(attackDamage);
-
-                // Empuje sutil (knockback) para despejar a enemigos cercanos
-                Rigidbody2D erb = col.attachedRigidbody;
-                if (erb != null && erb.bodyType == RigidbodyType2D.Dynamic)
-                {
-                    float pushX = Mathf.Sign(col.transform.position.x - transform.position.x);
-                    if (Mathf.Abs(col.transform.position.x - transform.position.x) < 0.1f)
-                        pushX = facingDirection;
-                    erb.linearVelocity = new Vector2(pushX * shockwaveKnockback, 2.5f);
-                }
             }
         }
 
