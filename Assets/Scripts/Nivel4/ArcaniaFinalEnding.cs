@@ -106,8 +106,19 @@ public class ArcaniaFinalEnding : MonoBehaviour
 
         if (gemCollider != null) gemCollider.enabled = false;
         if (gemRenderer != null) gemRenderer.enabled = false;
+        foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            sr.enabled = false;
+        }
+        foreach (ParticleSystem ps in GetComponentsInChildren<ParticleSystem>(true))
+        {
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
 
         player.SetControlEnabled(false);
+        player.StopHorizontalMotion();
+        player.ForceAnimation(PlayerState.IDLE);
+        player.SetCutsceneWeapon(true);
         player.AddDamageBonus(25);
         player.PlayAbsorbFeedback(gemGlowColor);
 
@@ -121,53 +132,81 @@ public class ArcaniaFinalEnding : MonoBehaviour
 
         if (MessageBanner.Instance != null)
         {
-            MessageBanner.Instance.Show(pickupMessage, 3.6f);
+            string bannerText = string.IsNullOrEmpty(pickupMessage) || pickupMessage.Contains("Canalizando su poder para sellar")
+                ? "¡Has recuperado la Gema de Arcanía! (Escena final: Kai sellará el Portal automáticamente...)"
+                : pickupMessage;
+            MessageBanner.Instance.Show(bannerText, 3.8f);
         }
 
-        yield return new WaitForSeconds(1.1f);
+        // Mantener a Kai detenido en reposo mientras absorbe el aura de la Gema
+        float absorbWait = 1.05f;
+        while (absorbWait > 0f)
+        {
+            absorbWait -= Time.deltaTime;
+            player.StopHorizontalMotion();
+            yield return null;
+        }
 
         // 1. Kai camina frente al Portal de Arcania en el Altar del Trono
         Vector3 portalPos = portalTransform != null
             ? portalTransform.position
             : new Vector3(132.5f, 1.35f, 0f);
 
-        float targetKaiX = portalPos.x - 1.9f;
+        float targetKaiX = portalPos.x - 2.0f;
         Rigidbody2D body = player.Body;
-        float walkTimeout = 2.2f;
+        float walkTimeout = 1.8f;
+        float lastX = player.transform.position.x;
+        float stuckTimer = 0f;
 
-        while (body != null && Mathf.Abs(player.transform.position.x - targetKaiX) > 0.15f && walkTimeout > 0f)
+        while (body != null && Mathf.Abs(player.transform.position.x - targetKaiX) > 0.18f && walkTimeout > 0f)
         {
-            walkTimeout -= Time.deltaTime;
+            float dt = Time.deltaTime;
+            walkTimeout -= dt;
             float dir = Mathf.Sign(targetKaiX - player.transform.position.x);
             player.FaceDirection(dir);
             player.SetAnimation(PlayerState.MOVE);
-            body.linearVelocity = new Vector2(dir * 2.5f, body.linearVelocity.y);
+            body.linearVelocity = new Vector2(dir * 3.0f, body.linearVelocity.y);
             yield return null;
+
+            if (Mathf.Abs(player.transform.position.x - lastX) < 0.005f)
+            {
+                stuckTimer += dt;
+                if (stuckTimer >= 0.30f) break;
+            }
+            else
+            {
+                stuckTimer = 0f;
+            }
+            lastX = player.transform.position.x;
         }
 
-        if (body != null)
-        {
-            body.linearVelocity = new Vector2(0f, body.linearVelocity.y);
-        }
-
-        player.FaceDirection(1f);
-        player.SetAnimation(PlayerState.IDLE);
-        yield return new WaitForSeconds(0.35f);
+        player.StopHorizontalMotion();
+        float dirToPortal = portalPos.x >= player.transform.position.x ? 1f : -1f;
+        player.FaceDirection(dirToPortal);
+        player.ForceAnimation(PlayerState.IDLE);
+        yield return new WaitForSeconds(0.25f);
 
         // 2. Kai canaliza la Gema de Arcania y lanza 3 pulsos mágicos hacia el portal
         for (int i = 0; i < 3; i++)
         {
-            player.SetAnimation(PlayerState.ATTACK);
-            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.playerAttack : null);
+            player.StopHorizontalMotion();
+            dirToPortal = portalPos.x >= player.transform.position.x ? 1f : -1f;
+            player.FaceDirection(dirToPortal);
+            player.ForceAnimation(PlayerState.ATTACK);
 
-            Vector3 castOrigin = player.transform.position + new Vector3(0.6f, 0.45f, 0f);
+            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.playerAttack : null);
+            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.magicBolt : null);
+
+            Vector3 castOrigin = player.transform.position + new Vector3(dirToPortal * 0.65f, 0.55f, 0f);
+            Color pulseColor = Color.Lerp(portalColor, new Color(1f, 0.92f, 0.45f, 1f), (i + 1) / 3f);
+
             MagicFX.SpawnShockwave(castOrigin, gemGlowColor, 2.2f, 0.35f);
             MagicFX.Burst(castOrigin, gemGlowColor, 22, 0.35f);
-            MagicFX.Burst(portalPos, Color.Lerp(portalColor, gemGlowColor, (i + 1) / 3f), 32, 0.45f);
+            StartCoroutine(LaunchArcanePulse(castOrigin, portalPos, pulseColor));
 
-            yield return new WaitForSeconds(0.55f);
-            player.SetAnimation(PlayerState.IDLE);
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.45f);
+            player.ForceAnimation(PlayerState.IDLE);
+            yield return new WaitForSeconds(0.22f);
         }
 
         // 3. El Portal de Arcania se contrae y se sella definitivamente
@@ -234,6 +273,40 @@ public class ArcaniaFinalEnding : MonoBehaviour
             {
                 btnText.text = "Volver al Menú";
             }
+        }
+    }
+
+    private IEnumerator LaunchArcanePulse(Vector3 startPos, Vector3 endPos, Color pulseColor)
+    {
+        GameObject orb = new GameObject("ArcaneSealPulse");
+        orb.transform.position = startPos;
+
+        SpriteRenderer sr = orb.AddComponent<SpriteRenderer>();
+        sr.sprite = MagicFX.GlowSprite;
+        sr.color = pulseColor;
+        sr.sortingLayerName = "Player";
+        sr.sortingOrder = 45;
+        orb.transform.localScale = Vector3.one * 0.75f;
+
+        MagicFX.AddSparkles(orb.transform, pulseColor, 0.22f, 28f);
+
+        const float travelTime = 0.28f;
+        float elapsed = 0f;
+        while (elapsed < travelTime && orb != null)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / travelTime);
+            orb.transform.position = Vector3.Lerp(startPos, endPos, t);
+            orb.transform.localScale = Vector3.one * Mathf.Lerp(0.75f, 1.15f, t);
+            yield return null;
+        }
+
+        MagicFX.SpawnShockwave(endPos, pulseColor, 2.6f, 0.35f);
+        MagicFX.Burst(endPos, pulseColor, 36, 0.45f);
+
+        if (orb != null)
+        {
+            Destroy(orb);
         }
     }
 }

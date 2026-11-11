@@ -871,7 +871,24 @@ public class PlayerController : MonoBehaviour
         {
             isAttacking = false;
             StopAllCoroutines();
-            transform.localScale = originalScale;
+            if (verticalSwordHitbox != null) verticalSwordHitbox.DeactivateHitbox();
+            if (horizontalSwordHitbox != null) horizontalSwordHitbox.DeactivateHitbox();
+            StopHorizontalMotion();
+            currentState = PlayerState.IDLE;
+            if (spumPrefabs != null)
+            {
+                spumPrefabs.PlayAnimation(PlayerState.IDLE, 0);
+            }
+            SetVisualFacing();
+        }
+    }
+
+    /// <summary>Detiene de inmediato el desplazamiento horizontal de Kai.</summary>
+    public void StopHorizontalMotion()
+    {
+        if (rb != null)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         }
     }
 
@@ -902,7 +919,34 @@ public class PlayerController : MonoBehaviour
     {
         if (state == currentState) return;
         currentState = state;
-        spumPrefabs.PlayAnimation(currentState, 0);
+        if (spumPrefabs != null)
+        {
+            spumPrefabs.PlayAnimation(currentState, 0);
+        }
+    }
+
+    /// <summary>Fuerza la reproducción de una animación aunque coincida con currentState (útil en cinemáticas).</summary>
+    public void ForceAnimation(PlayerState state)
+    {
+        currentState = state;
+        if (spumPrefabs != null)
+        {
+            spumPrefabs.PlayAnimation(currentState, 0);
+        }
+    }
+
+    /// <summary>Muestra visualmente el bastón o la espada durante una cinemática sin alterar el progreso guardado.</summary>
+    public void SetCutsceneWeapon(bool useStaff)
+    {
+        if (weaponRenderer == null) return;
+        if (useStaff && staffSprite != null)
+        {
+            weaponRenderer.sprite = staffSprite;
+        }
+        else if (!useStaff && swordSprite != null)
+        {
+            weaponRenderer.sprite = swordSprite;
+        }
     }
 
     /// <summary>Suma daño permanente (fragmento de la gema).</summary>
