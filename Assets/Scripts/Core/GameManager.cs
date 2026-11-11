@@ -102,7 +102,7 @@ public class GameManager : MonoBehaviour
         Bind(restartButton, Restart);
         Bind(optionsButton, OpenOptions);
         Bind(quitButton, GoToMenu);
-        Bind(retryButton, Restart);
+        Bind(retryButton, RetryFromGameOver);
         Bind(playAgainButton, PlayAgain);
         Bind(gameOverMenuButton, GoToMenu);
         Bind(nextLevelButton, GoToNextLevel);
@@ -322,7 +322,37 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(1.3f);
 
         AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.gameOver : null);
+
+        // Si Kai activó un checkpoint, el botón Reintentar lo reaparece ahí (Nivel 4).
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (retryButton != null)
+        {
+            TextMeshProUGUI label = retryButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null && player != null && player.hasCheckpoint)
+                label.text = "Reintentar (Checkpoint)";
+        }
+
         SetActive(gameOverPanel, true);
+    }
+
+    /// <summary>
+    /// Botón Reintentar del Game Over: si hay checkpoint, Kai reaparece en él con la vida llena;
+    /// si no, se reinicia el nivel completo.
+    /// </summary>
+    public void RetryFromGameOver()
+    {
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (player != null && player.hasCheckpoint)
+        {
+            StopAllCoroutines();
+            Time.timeScale = 1f;
+            SetActive(gameOverPanel, false);
+            State = GameState.Playing;
+            player.RespawnAtCheckpoint();
+            return;
+        }
+
+        Restart();
     }
 
     public void CompleteLevel()

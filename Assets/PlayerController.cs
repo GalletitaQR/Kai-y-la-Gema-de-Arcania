@@ -675,13 +675,11 @@ public class PlayerController : MonoBehaviour
         if (verticalSwordHitbox != null) verticalSwordHitbox.DeactivateHitbox();
         if (horizontalSwordHitbox != null) horizontalSwordHitbox.DeactivateHitbox();
 
-        if (hasCheckpoint)
-        {
-            StartCoroutine(RespawnAtCheckpointRoutine());
-            return;
-        }
-
+        // Siempre se muestra la muerte y la pantalla de Game Over.
+        // Si hay checkpoint, el botón "Reintentar" del Game Over reaparece a Kai en el último checkpoint.
         isDead = true;
+        isAttacking = false;
+        isKnockback = false;
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Static;
         currentState = PlayerState.DEATH;
@@ -705,18 +703,19 @@ public class PlayerController : MonoBehaviour
         UpdateHealthUI();
     }
 
+    /// <summary>Reaparece a Kai en el último checkpoint (lo llama el botón Reintentar del Game Over).</summary>
+    public void RespawnAtCheckpoint()
+    {
+        StopAllCoroutines();
+        isInvincible = false;
+        StartCoroutine(RespawnAtCheckpointRoutine());
+    }
+
     private IEnumerator RespawnAtCheckpointRoutine()
     {
-        isDead = true;
         isAttacking = false;
         isKnockback = false;
-        rb.linearVelocity = Vector2.zero;
-        rb.bodyType = RigidbodyType2D.Static;
-        currentState = PlayerState.DEATH;
-        spumPrefabs.PlayAnimation(currentState, 0);
-        PlaySfx(Lib != null ? Lib.playerDeath : null);
-
-        yield return new WaitForSeconds(1.1f);
+        yield return null;
 
         transform.position = lastCheckpointPosition;
         rb.bodyType = RigidbodyType2D.Dynamic;
