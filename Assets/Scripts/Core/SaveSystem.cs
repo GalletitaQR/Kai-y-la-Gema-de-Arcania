@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>Small PlayerPrefs wrapper: where to continue, whether the prologue was seen, staff ownership.</summary>
 public static class SaveSystem
 {
-    public const string FirstLevelScene = "SampleScene";
+    public const string FirstLevelScene = "Nivel1";
 
     private const string SavedSceneKey = "SavedScene";
     private const string PrologueSeenKey = "PrologueSeen";

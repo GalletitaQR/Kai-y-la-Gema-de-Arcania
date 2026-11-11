@@ -3647,7 +3647,7 @@ MonoBehaviour:
   brightnessSlider: {fileID: 1825852051}
   fullscreenToggle: {fileID: 948873921}
   brightnessOverlay: {fileID: 672229665}
-  gameSceneName: SampleScene
+  gameSceneName: Nivel1
 --- !u!4 &1175446886
 Transform:
   m_ObjectHideFlags: 0

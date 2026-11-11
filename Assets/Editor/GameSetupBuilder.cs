@@ -17,11 +17,11 @@ public static class GameSetupBuilder
     // Scenes
     private const string SplashPath = "Assets/Scenes/Splash.unity";
     private const string MainMenuPath = "Assets/Scenes/MainMenu.unity";
-    private const string Level1Path = "Assets/Scenes/SampleScene.unity";
+    private const string Level1Path = "Assets/Scenes/Nivel1.unity";
     private const string Level2Path = "Assets/Scenes/Nivel2.unity";
 
     // Art supplied by the team
-    private const string ArtDir = "Assets/assets/assets/";
+    private const string ArtDir = "Assets/Coin_Gems/assets/assets/";
     private const string GeneratedDir = "Assets/Sprites/Generated/";
     private const string HeartPath = GeneratedDir + "heart.png";
     private const string StaffPath = GeneratedDir + "staff.png";
@@ -44,7 +44,7 @@ public static class GameSetupBuilder
         if (!EditorUtility.DisplayDialog("Setup Game",
                 "Esto va a:\n" +
                 "- crear las escenas Splash y MainMenu,\n" +
-                "- agregar a SampleScene (Nivel 1) el HUD, pausa, game over, victoria, prologo, tutorial, mago, bastón y fragmento de gema,\n" +
+                "- agregar a Nivel1 el HUD, pausa, game over, victoria, prologo, tutorial, mago, bastón y fragmento de gema,\n" +
                 "- cambiar las frutas por corazones,\n" +
                 "- crear Nivel2 (solo si no existe) y registrar las escenas en Build Settings.\n\n" +
                 "Se guardan las escenas. Haz commit antes si quieres poder volver atrás.\n\n¿Continuar?",
@@ -71,6 +71,86 @@ public static class GameSetupBuilder
         {
             Debug.LogException(e);
             EditorUtility.DisplayDialog("Setup Game", "Algo falló: " + e.Message + "\n\nRevisa la Console.", "OK");
+        }
+    }
+
+    [MenuItem("Tools/Kai/Reparar imágenes de botones")]
+    public static void RepairButtonSprites()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            Debug.LogWarning("Sal del modo Play antes de reparar las imágenes de los botones.");
+            return;
+        }
+
+        if (!EditorUtility.DisplayDialog("Reparar imágenes de botones", "Se asignarán nuevamente los PNG a los botones existentes. No se reconstruirán las escenas. ¿Continuar?", "Reparar", "Cancelar"))
+            return;
+
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            return;
+
+        string activePath = EditorSceneManager.GetActiveScene().path;
+        string[] scenePaths =
+        {
+            "Assets/Scenes/MainMenu.unity",
+            "Assets/Scenes/Menu.unity",
+            "Assets/Scenes/Nivel1.unity",
+            "Assets/Scenes/Nivel2.unity",
+            "Assets/Scenes/Nivel3.unity",
+            "Assets/Scenes/Nivel4.unity"
+        };
+
+        int repaired = 0;
+        foreach (string scenePath in scenePaths)
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null)
+                continue;
+
+            Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            foreach (Button button in UnityEngine.Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                string spriteName = ButtonSpriteName(button.name);
+                if (spriteName == null)
+                    continue;
+
+                Image image = button.GetComponent<Image>();
+                Sprite sprite = Art(spriteName);
+                if (image == null || sprite == null)
+                    continue;
+
+                image.sprite = sprite;
+                image.preserveAspect = true;
+                button.targetGraphic = image;
+                repaired++;
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+        }
+
+        if (!string.IsNullOrEmpty(activePath) && AssetDatabase.LoadAssetAtPath<SceneAsset>(activePath) != null)
+            EditorSceneManager.OpenScene(activePath, OpenSceneMode.Single);
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Imágenes de botones reparadas: " + repaired);
+        EditorUtility.DisplayDialog("Reparación terminada", "Se restauraron " + repaired + " imágenes de botones. Ahora abre Play desde Splash para comprobar el menú.", "OK");
+    }
+
+    private static string ButtonSpriteName(string buttonName)
+    {
+        switch (buttonName)
+        {
+            case "PlayButton":
+            case "PlayAgainButton": return "Jugar.png";
+            case "ContinueButton":
+            case "ResumeButton":
+            case "NextLevelButton": return "continuar.png";
+            case "RestartButton":
+            case "RetryButton": return "Reiniciar.png";
+            case "OptionsButton": return "Opciones.png";
+            case "QuitButton":
+            case "MenuButton": return "Salir.png";
+            default: return null;
         }
     }
 
@@ -399,7 +479,7 @@ public static class GameSetupBuilder
         controller.creditsButton = credits;
         controller.quitButton = quit;
         controller.creditsBackButton = creditsBack;
-        controller.firstLevelScene = "SampleScene";
+        controller.firstLevelScene = "Nivel1";
 
         CreateEventSystem();
         EditorSceneManager.SaveScene(scene, MainMenuPath);
@@ -581,7 +661,7 @@ public static class GameSetupBuilder
         }
 
         if (!AssetDatabase.CopyAsset(Level1Path, Level2Path))
-            throw new InvalidOperationException("No se pudo copiar SampleScene a Nivel2.");
+            throw new InvalidOperationException("No se pudo copiar Nivel1 a Nivel2.");
 
         Scene scene = EditorSceneManager.OpenScene(Level2Path, OpenSceneMode.Single);
 
@@ -721,29 +801,32 @@ public static class GameSetupBuilder
         // ----- Pause -----
         Vector2 buttonSize = new Vector2(400f, 130f);
         GameObject pausePanel = MenuPanel(ui, "PausePanel", new Color(0f, 0f, 0f, 0.75f), "PAUSA", 110f, UiKit.TitleCreamHex);
-        manager.resumeButton = UiKit.ImageButton(pausePanel.transform, "ResumeButton", Art("continuar.png"), buttonSize);
-        manager.restartButton = UiKit.ImageButton(pausePanel.transform, "RestartButton", Art("Reiniciar.png"), buttonSize);
-        manager.optionsButton = UiKit.ImageButton(pausePanel.transform, "OptionsButton", Art("Opciones.png"), buttonSize);
-        manager.quitButton = UiKit.ImageButton(pausePanel.transform, "QuitButton", Art("Salir.png"), buttonSize);
+        Transform pauseContent = MenuContent(pausePanel);
+        manager.resumeButton = UiKit.ImageButton(pauseContent, "ResumeButton", Art("continuar.png"), buttonSize);
+        manager.restartButton = UiKit.ImageButton(pauseContent, "RestartButton", Art("Reiniciar.png"), buttonSize);
+        manager.optionsButton = UiKit.ImageButton(pauseContent, "OptionsButton", Art("Opciones.png"), buttonSize);
+        manager.quitButton = UiKit.ImageButton(pauseContent, "QuitButton", Art("Salir.png"), buttonSize);
         manager.pausePanel = pausePanel;
         manager.optionsPanel = UiKit.OptionsPanel(ui, pausePanel).gameObject;
         pausePanel.SetActive(false);
 
         // ----- Game over -----
         GameObject gameOver = MenuPanel(ui, "GameOverPanel", new Color(0.18f, 0f, 0f, 0.88f), "GAME OVER", 150f, "E53935");
-        manager.retryButton = UiKit.ImageButton(gameOver.transform, "RetryButton", Art("Reiniciar.png"), buttonSize);
-        manager.playAgainButton = UiKit.ImageButton(gameOver.transform, "PlayAgainButton", Art("Jugar.png"), buttonSize);
-        manager.gameOverMenuButton = UiKit.ImageButton(gameOver.transform, "MenuButton", Art("Salir.png"), buttonSize);
+        Transform gameOverContent = MenuContent(gameOver);
+        manager.retryButton = UiKit.ImageButton(gameOverContent, "RetryButton", Art("Reiniciar.png"), buttonSize);
+        manager.playAgainButton = UiKit.ImageButton(gameOverContent, "PlayAgainButton", Art("Jugar.png"), buttonSize);
+        manager.gameOverMenuButton = UiKit.ImageButton(gameOverContent, "MenuButton", Art("Salir.png"), buttonSize);
         manager.gameOverPanel = gameOver;
         gameOver.SetActive(false);
 
         // ----- Victory -----
         GameObject victory = MenuPanel(ui, "VictoryPanel", new Color(0f, 0.06f, 0.12f, 0.88f), "¡NIVEL COMPLETADO!", 100f, UiKit.GoldHex);
-        manager.victoryScoreText = UiKit.Text(victory.transform, "ScoreText", "Puntaje: 0", 64f, UiKit.CreamHex, TextAlignmentOptions.Center);
+        Transform victoryContent = MenuContent(victory);
+        manager.victoryScoreText = UiKit.Text(victoryContent, "ScoreText", "Puntaje: 0", 64f, UiKit.CreamHex, TextAlignmentOptions.Center);
         manager.victoryScoreText.rectTransform.sizeDelta = new Vector2(1000f, 84f);
-        manager.victoryTimeText = UiKit.Text(victory.transform, "TimeText", "Tiempo: 00:00", 64f, UiKit.CreamHex, TextAlignmentOptions.Center);
+        manager.victoryTimeText = UiKit.Text(victoryContent, "TimeText", "Tiempo: 00:00", 64f, UiKit.CreamHex, TextAlignmentOptions.Center);
         manager.victoryTimeText.rectTransform.sizeDelta = new Vector2(1000f, 84f);
-        manager.nextLevelButton = UiKit.ImageButton(victory.transform, "NextLevelButton", Art("continuar.png"), buttonSize);
+        manager.nextLevelButton = UiKit.ImageButton(victoryContent, "NextLevelButton", Art("continuar.png"), buttonSize);
         manager.victoryPanel = victory;
         victory.SetActive(false);
 
@@ -761,11 +844,24 @@ public static class GameSetupBuilder
     private static GameObject MenuPanel(Transform parent, string name, Color dim, string title, float titleSize, string titleColor)
     {
         GameObject panel = UiKit.Dim(parent, name, dim).gameObject;
-        UiKit.VerticalLayout(panel, 20, 14f, TextAnchor.MiddleCenter, false);
+        GameObject dialog = UiKit.New("Dialog", panel.transform, typeof(Image), typeof(Outline));
+        UiKit.Place(UiKit.Rect(dialog), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1150f, 820f));
+        Image dialogImage = dialog.GetComponent<Image>();
+        dialogImage.color = new Color(dim.r * 0.45f + 0.04f, dim.g * 0.45f + 0.05f, dim.b * 0.45f + 0.07f, 0.98f);
+        dialogImage.raycastTarget = true;
+        Outline outline = dialog.GetComponent<Outline>();
+        outline.effectColor = new Color(1f, 1f, 1f, 0.9f);
+        outline.effectDistance = new Vector2(5f, -5f);
+        UiKit.VerticalLayout(dialog, 35, 18f, TextAnchor.MiddleCenter, false);
 
-        TextMeshProUGUI text = UiKit.Text(panel.transform, "Title", title, titleSize, titleColor, TextAlignmentOptions.Center, false, FontStyles.Bold);
+        TextMeshProUGUI text = UiKit.Text(dialog.transform, "Title", title, titleSize, titleColor, TextAlignmentOptions.Center, false, FontStyles.Bold);
         text.rectTransform.sizeDelta = new Vector2(1500f, titleSize * 1.35f);
         return panel;
+    }
+
+    private static Transform MenuContent(GameObject panel)
+    {
+        return panel.transform.Find("Dialog");
     }
 
     private static void BuildTutorialPanel(Transform ui, PrologueUi refs)

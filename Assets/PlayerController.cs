@@ -79,7 +79,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Joystick Virtual en Pantalla")]
     public bool usarJoystickEnPantalla = true;
-    [Tooltip("Si está activo, el joystick virtual solo se crea en SampleScene y Nivel2.")]
+    [Tooltip("Si está activo, el joystick virtual solo se crea en Nivel1 y Nivel2.")]
     public bool soloEnSampleScene = false;
 
     private Rigidbody2D rb;
@@ -165,7 +165,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // En Nivel 1 y Nivel 2 Kai inicia sin la capa (en Nivel 2 la debe descubrir en el Cofre Secreto)
-        if (currentScene == "SampleScene" || currentScene == "Nivel2")
+        if (currentScene == "Nivel1" || currentScene == "Nivel2")
         {
             SaveSystem.HasCape = false;
         }
@@ -197,7 +197,7 @@ public class PlayerController : MonoBehaviour
         if (usarJoystickEnPantalla)
         {
             string sceneName = SceneManager.GetActiveScene().name;
-            if (!soloEnSampleScene || sceneName == "SampleScene" || sceneName == "Nivel1" || sceneName == "Nivel2" || sceneName == "Nivel3" || sceneName == "Nivel4")
+            if (!soloEnSampleScene || sceneName == "Nivel1" || sceneName == "Nivel2" || sceneName == "Nivel3" || sceneName == "Nivel4")
             {
                 VirtualControlsUI.EnsureExists();
             }

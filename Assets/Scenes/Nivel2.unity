@@ -5416,6 +5416,15 @@ MonoBehaviour:
   target: {fileID: 1383366815}
   smoothSpeed: 5.5
   offset: {x: 0, y: 1.2, z: -10}
+  useBounds: 0
+  minX: -10
+  maxX: 140
+  minY: -4
+  maxY: 10
+  lockInBossRoom: 0
+  bossRoomTriggerX: 115
+  bossRoomCameraPos: {x: 125, y: 1.5}
+  bossRoomOrthoSize: 6.5
 --- !u!1 &539012064
 GameObject:
   m_ObjectHideFlags: 0
@@ -13314,6 +13323,15 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 256
+  horizontalAttackKey: 122
+  verticalSwordHitbox: {fileID: 0}
+  horizontalSwordHitbox: {fileID: 0}
+  verticalHitboxLocalPos: {x: 0.85, y: 0.45}
+  verticalHitboxSize: {x: 1.25, y: 1.35}
+  horizontalHitboxLocalPos: {x: 1.15, y: 0.22}
+  horizontalHitboxSize: {x: 2.15, y: 0.72}
+  hasCheckpoint: 0
+  lastCheckpointPosition: {x: 0, y: 0, z: 0}
   knockbackForce: {x: 3, y: 4}
   knockbackDuration: 0.25
   currentWeapon: 1
@@ -13322,6 +13340,8 @@ MonoBehaviour:
   shockwaveKnockback: 4
   swordSprite: {fileID: 21300000, guid: 400f84ca50ac94f20a75a7ecfbe2cfe8, type: 3}
   staffSprite: {fileID: 21300000, guid: f42522887406a9c49959f0da035ed7a8, type: 3}
+  usarJoystickEnPantalla: 1
+  soloEnSampleScene: 0
   cristales: 0
 --- !u!70 &1383366819
 CapsuleCollider2D:
@@ -18017,6 +18037,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GemFragment
   fragmentNumber: 2
   unlocksCape: 0
+  completesLevel: 0
   message: "\xA1Has obtenido la segunda parte de la Gema de Arcan\xEDa!"
   messageSeconds: 4
   damageBonus: 0

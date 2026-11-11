@@ -85,7 +85,7 @@ public class GameManager : MonoBehaviour
         AutoWireIfNeeded();
 
         string activeScene = SceneManager.GetActiveScene().name;
-        bool isFirstLevel = activeScene == "SampleScene" || activeScene == "Nivel1";
+        bool isFirstLevel = activeScene == "Nivel1";
 
         if (SkipStartMenuOnce || !isFirstLevel)
         {

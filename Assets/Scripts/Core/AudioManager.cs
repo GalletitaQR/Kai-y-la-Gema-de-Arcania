@@ -83,7 +83,7 @@ public class AudioManager : MonoBehaviour
 
         switch (sceneName)
         {
-            case "SampleScene": return library.level1Music;
+            case "Nivel1": return library.level1Music;
             case "Nivel2": return library.level2Music;
             default: return library.menuMusic;
         }

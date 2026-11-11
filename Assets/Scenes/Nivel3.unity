@@ -1658,6 +1658,15 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 256
+  horizontalAttackKey: 122
+  verticalSwordHitbox: {fileID: 0}
+  horizontalSwordHitbox: {fileID: 0}
+  verticalHitboxLocalPos: {x: 0.85, y: 0.45}
+  verticalHitboxSize: {x: 1.25, y: 1.35}
+  horizontalHitboxLocalPos: {x: 1.15, y: 0.22}
+  horizontalHitboxSize: {x: 2.15, y: 0.72}
+  hasCheckpoint: 0
+  lastCheckpointPosition: {x: 0, y: 0, z: 0}
   knockbackForce: {x: 3, y: 4}
   knockbackDuration: 0.25
   currentWeapon: 0
@@ -24579,6 +24588,15 @@ MonoBehaviour:
   target: {fileID: 104277535}
   smoothSpeed: 5
   offset: {x: 0, y: 1, z: -10}
+  useBounds: 0
+  minX: -10
+  maxX: 140
+  minY: -4
+  maxY: 10
+  lockInBossRoom: 0
+  bossRoomTriggerX: 115
+  bossRoomCameraPos: {x: 125, y: 1.5}
+  bossRoomOrthoSize: 6.5
 --- !u!1 &2018506838
 GameObject:
   m_ObjectHideFlags: 0

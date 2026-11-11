@@ -47,7 +47,7 @@ public class MenuController : MonoBehaviour
 
     [Header("Game")]
     [Tooltip("Exact name of the game scene (it must be in the Build Profiles scene list).")]
-    public string gameSceneName = "SampleScene";
+    public string gameSceneName = "Nivel1";
 
     private void Start()
     {

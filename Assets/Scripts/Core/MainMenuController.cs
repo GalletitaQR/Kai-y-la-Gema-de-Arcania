@@ -27,7 +27,7 @@ public class MainMenuController : MonoBehaviour
     public Button creditsBackButton;
 
     [Header("Escenas")]
-    public string firstLevelScene = "SampleScene";
+    public string firstLevelScene = "Nivel1";
 
     private bool isOverlay;
 

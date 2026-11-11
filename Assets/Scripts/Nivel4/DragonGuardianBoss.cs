@@ -57,13 +57,13 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
     public float vulnerableDuration = 4.5f;
     public float vulnerableDurationWhenMageDead = 6.0f;
     [Tooltip("Daño recibido fuera del momento vulnerable (0.5 = 50%).")]
-    public float armoredDamageMultiplier = 0.5f;
+    public float armoredDamageMultiplier = 0.2f;
     [Tooltip("Daño recibido durante el momento vulnerable (1.5 = 150%).")]
-    public float vulnerableDamageMultiplier = 1.5f;
+    public float vulnerableDamageMultiplier = 0.5f;
 
     [Header("Cristales de Poder Arcano (aumentan el daño de Kai)")]
     public Sprite powerCrystalSprite;
-    public int crystalDamageBonus = 15;
+    public int crystalDamageBonus = 10;
     public int maxActiveCrystals = 2;
     public int maxTotalCrystals = 6;
     public Vector3[] crystalSpawnPoints = new Vector3[]
@@ -74,7 +74,7 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
     };
 
     [Header("Vida y Daño")]
-    public int maxHealth = 300;
+    public int maxHealth = 450;
     public int currentHealth = 300;
     public int contactDamage = 10;
     public int scoreValue = 500;

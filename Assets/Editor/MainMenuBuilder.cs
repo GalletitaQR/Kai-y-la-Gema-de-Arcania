@@ -16,8 +16,8 @@ using UnityEngine.UI;
 public static class MainMenuBuilder
 {
     private const string MenuScenePath = "Assets/Scenes/Menu.unity";
-    private const string GameScenePath = "Assets/Scenes/SampleScene.unity";
-    private const string GameSceneName = "SampleScene";
+    private const string GameScenePath = "Assets/Scenes/Nivel1.unity";
+    private const string GameSceneName = "Nivel1";
 
     private const string UiRoot = "Assets/FreeButtonSet/Textures/";
     private const string PrefabFolder = "Assets/Prefabs";

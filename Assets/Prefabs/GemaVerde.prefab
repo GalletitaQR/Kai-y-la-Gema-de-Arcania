@@ -176,6 +176,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GemFragment
   fragmentNumber: 1
+  unlocksCape: 0
+  completesLevel: 0
   message: "\xA1Has obtenido el primer fragmento de la Gema de Arcan\xEDa!"
   messageSeconds: 4
   damageBonus: 10

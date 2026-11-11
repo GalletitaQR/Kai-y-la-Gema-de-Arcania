@@ -25,7 +25,7 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public static class Level2Builder
 {
-    private const string Level1Path = "Assets/Scenes/SampleScene.unity";
+    private const string Level1Path = "Assets/Scenes/Nivel1.unity";
     private const string Level2Path = "Assets/Scenes/Nivel2.unity";
     private const string GeneratedDir = "Assets/Sprites/Generated/";
 
@@ -57,7 +57,7 @@ public static class Level2Builder
             "• Plataformas de roca natural con estalactitas, pilares y fosas de lava.\n" +
             "• Slimes de Caverna, Cristales Vivientes, Murciélagos y Serpientes acechando en cornisas.\n" +
             "• Altar Secreto con la Gema Morada de Arcanía (desbloquea la Capa del 20% de protección).\n" +
-            "• NO altera SampleScene (Nivel 1) ni MainMenu.\n\n" +
+            "• NO altera Nivel1 ni MainMenu.\n\n" +
             "¿Proceder?",
             "Crear Nivel 2", "Cancelar"))
         {
@@ -487,7 +487,7 @@ public static class Level2Builder
         }
 
         if (!AssetDatabase.CopyAsset(Level1Path, Level2Path))
-            throw new InvalidOperationException("No se pudo copiar SampleScene a Nivel2.");
+            throw new InvalidOperationException("No se pudo copiar Nivel1 a Nivel2.");
 
         Scene scene = EditorSceneManager.OpenScene(Level2Path, OpenSceneMode.Single);
 
