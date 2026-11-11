@@ -50,7 +50,8 @@ public class AudioManager : MonoBehaviour
         musicSource = gameObject.AddComponent<AudioSource>();
         musicSource.loop = true;
         musicSource.playOnAwake = false;
-        musicSource.ignoreListenerPause = true;
+        // Quitamos ignoreListenerPause para que la música responda al estado de pausa del juego o lo controlamos por timeScale
+        musicSource.ignoreListenerPause = false; 
 
         sfxSource = gameObject.AddComponent<AudioSource>();
         sfxSource.playOnAwake = false;
@@ -70,6 +71,25 @@ public class AudioManager : MonoBehaviour
             SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    private void Update()
+    {
+        // Si el juego está pausado (Time.timeScale == 0) y la música está sonando, la pausamos.
+        // Cuando se despausa (Time.timeScale > 0), reanudamos la música.
+        if (musicSource != null && library != null)
+        {
+            if (Mathf.Approximately(Time.timeScale, 0f))
+            {
+                if (musicSource.isPlaying)
+                    musicSource.Pause();
+            }
+            else
+            {
+                if (!musicSource.isPlaying && musicSource.clip != null)
+                    musicSource.UnPause();
+            }
+        }
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlayMusic(MusicForScene(scene.name));
@@ -85,6 +105,8 @@ public class AudioManager : MonoBehaviour
         {
             case "Nivel1": return library.level1Music;
             case "Nivel2": return library.level2Music;
+            case "Nivel3": return library.level3Music; // <--- Añadido Nivel 3
+            case "Nivel4": return library.level4Music; // <--- Añadido Nivel 4
             default: return library.menuMusic;
         }
     }
