@@ -751,7 +751,10 @@ public class PlayerController : MonoBehaviour
             Destroy(other.gameObject);
             if (currentHealth <= 0) Die();
         }
-        else if (other.CompareTag("Gema") && other.GetComponent<GemFragment>() == null)
+        else if (other.CompareTag("Gema") &&
+                 other.GetComponent<GemFragment>() == null &&
+                 other.GetComponent<ArcaniaFinalEnding>() == null &&
+                 other.GetComponent<ArcanePowerCrystal>() == null)
         {
             // Respaldo: gema sin el componente GemFragment (comportamiento anterior).
             cristales++;

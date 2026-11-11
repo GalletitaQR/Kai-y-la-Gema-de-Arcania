@@ -85,13 +85,13 @@ public class ArcaniaFinalEnding : MonoBehaviour
     private void TryTriggerEnding(Collider2D other)
     {
         if (sequenceStarted || other == null) return;
-        if (!other.CompareTag("Player")) return;
 
-        PlayerController player = other.GetComponent<PlayerController>();
-        if (player == null) player = other.GetComponentInParent<PlayerController>();
-        if (player == null) return;
+        PlayerController player = other.GetComponentInParent<PlayerController>();
+        if (player == null) player = other.GetComponent<PlayerController>();
+        if (player == null || player.IsDead) return;
 
         sequenceStarted = true;
+        if (gemCollider != null) gemCollider.enabled = false;
         StartCoroutine(ClosingPortalCutsceneRoutine(player));
     }
 
