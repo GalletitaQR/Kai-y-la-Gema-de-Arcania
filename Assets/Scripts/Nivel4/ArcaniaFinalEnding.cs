@@ -47,6 +47,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
     public Sprite magePantRight;
     public Sprite mageCapeSprite;
     public Sprite mageHatSprite;
+    public Sprite celebrationHatSprite;
 
     [Header("Cinemática Final del Portal en Arcanía")]
     public Sprite infectedWorldSprite;
@@ -229,7 +230,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
         {
             MessageBanner.Instance.Show(transformationMessage, 4.0f);
         }
-        yield return new WaitForSeconds(2.15f);
+        yield return StartCoroutine(ShowCelebrationHatPopup(2.1f));
 
         // Reencuadrar cámara hacia Kai y el altar del portal antes de cerrarlo
         if (camFollow != null)
@@ -408,6 +409,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
         if (magePantLeft == null) magePantLeft = LoadSubSpriteAsset(pantPath, "Left");
         if (magePantRight == null) magePantRight = LoadSubSpriteAsset(pantPath, "Right");
         if (mageHatSprite == null) mageHatSprite = LoadSpriteAsset("Assets/Sprites/KaiMageHat.png");
+        if (celebrationHatSprite == null) celebrationHatSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/sombrero.png");
 #endif
     }
 
@@ -1031,6 +1033,97 @@ public class ArcaniaFinalEnding : MonoBehaviour
 
         if (ringGo != null)
             Destroy(ringGo);
+    }
+
+    private IEnumerator ShowCelebrationHatPopup(float duration)
+    {
+        if (celebrationHatSprite == null)
+        {
+            yield return new WaitForSeconds(duration);
+            yield break;
+        }
+
+        Canvas targetCanvas = MessageBanner.Instance != null
+            ? MessageBanner.Instance.GetComponentInParent<Canvas>()
+            : FindAnyObjectByType<Canvas>();
+
+        if (targetCanvas == null)
+        {
+            yield return new WaitForSeconds(duration);
+            yield break;
+        }
+
+        GameObject popupGo = new GameObject("CelebrationHatPopup", typeof(RectTransform), typeof(CanvasGroup));
+        RectTransform popupRt = popupGo.GetComponent<RectTransform>();
+        popupRt.SetParent(targetCanvas.transform, false);
+        popupRt.SetAsLastSibling();
+        popupRt.anchorMin = new Vector2(0.5f, 0.68f);
+        popupRt.anchorMax = new Vector2(0.5f, 0.68f);
+        popupRt.pivot = new Vector2(0.5f, 0.5f);
+        popupRt.sizeDelta = new Vector2(420f, 290f);
+        popupRt.anchoredPosition = Vector2.zero;
+
+        CanvasGroup cg = popupGo.GetComponent<CanvasGroup>();
+        cg.blocksRaycasts = false;
+        cg.interactable = false;
+
+        GameObject glowGo = new GameObject("HatGlow", typeof(RectTransform), typeof(Image));
+        RectTransform glowRt = glowGo.GetComponent<RectTransform>();
+        glowRt.SetParent(popupRt, false);
+        glowRt.anchorMin = new Vector2(0.5f, 0.5f);
+        glowRt.anchorMax = new Vector2(0.5f, 0.5f);
+        glowRt.sizeDelta = new Vector2(460f, 360f);
+        Image glowImg = glowGo.GetComponent<Image>();
+        glowImg.sprite = MagicFX.GlowSprite;
+        glowImg.color = new Color(0.85f, 0.48f, 1f, 0.65f);
+        glowImg.raycastTarget = false;
+
+        GameObject hatGo = new GameObject("HatImage", typeof(RectTransform), typeof(Image));
+        RectTransform hatRt = hatGo.GetComponent<RectTransform>();
+        hatRt.SetParent(popupRt, false);
+        StretchFull(hatRt);
+        Image hatImg = hatGo.GetComponent<Image>();
+        hatImg.sprite = celebrationHatSprite;
+        hatImg.preserveAspect = true;
+        hatImg.raycastTarget = false;
+
+        float inTime = 0.28f;
+        float outTime = 0.28f;
+        float holdTime = Mathf.Max(0.2f, duration - inTime - outTime);
+
+        float elapsed = 0f;
+        while (elapsed < inTime)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / inTime);
+            float overshoot = Mathf.Sin(t * Mathf.PI * 0.5f) * 1.08f;
+            popupRt.localScale = Vector3.one * overshoot;
+            cg.alpha = t;
+            yield return null;
+        }
+        popupRt.localScale = Vector3.one;
+        cg.alpha = 1f;
+
+        elapsed = 0f;
+        while (elapsed < holdTime)
+        {
+            elapsed += Time.deltaTime;
+            popupRt.anchoredPosition = new Vector2(0f, Mathf.Sin(elapsed * 4.5f) * 10f);
+            popupRt.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(elapsed * 3.5f) * 4f);
+            yield return null;
+        }
+
+        elapsed = 0f;
+        while (elapsed < outTime)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / outTime);
+            popupRt.localScale = Vector3.one * Mathf.Lerp(1f, 0.55f, t);
+            cg.alpha = 1f - t;
+            yield return null;
+        }
+
+        Destroy(popupGo);
     }
 }
 
