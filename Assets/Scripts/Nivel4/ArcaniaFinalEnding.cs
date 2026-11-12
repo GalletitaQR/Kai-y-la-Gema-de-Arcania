@@ -407,8 +407,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
         if (mageArmorRight == null) mageArmorRight = LoadSubSpriteAsset(armorPath, "Right");
         if (magePantLeft == null) magePantLeft = LoadSubSpriteAsset(pantPath, "Left");
         if (magePantRight == null) magePantRight = LoadSubSpriteAsset(pantPath, "Right");
-        if (mageCapeSprite == null) mageCapeSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/capa.png");
-        if (mageHatSprite == null) mageHatSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/sombrero.png");
+        if (mageHatSprite == null) mageHatSprite = LoadSpriteAsset("Assets/Sprites/KaiMageHat.png");
 #endif
     }
 

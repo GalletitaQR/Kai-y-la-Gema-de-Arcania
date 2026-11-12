@@ -862,7 +862,7 @@ public class PlayerController : MonoBehaviour
         return transform;
     }
 
-    /// <summary>Cambia la vestimenta de Kai al atuendo de Mago de Arcanía (capa, sombrero y túnica, conservando rostro/cabello) y aumenta su tamaño.</summary>
+    /// <summary>Cambia la vestimenta de Kai al atuendo de Mago de Arcanía (túnica, cuello, capa SPUM y sombrero pixel-art) y aumenta su tamaño.</summary>
     public void TransformToMageOutfit(
         Sprite clothBody, Sprite clothLeft, Sprite clothRight,
         Sprite armorBody, Sprite armorLeft, Sprite armorRight,
@@ -870,8 +870,6 @@ public class PlayerController : MonoBehaviour
         Sprite mageCapeSprite = null, Sprite mageHatSprite = null,
         float scaleMultiplier = 1.48f)
     {
-        bool useCustomCape = mageCapeSprite != null;
-
         foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
         {
             switch (sr.gameObject.name)
@@ -886,34 +884,19 @@ public class PlayerController : MonoBehaviour
                     if (clothRight != null) { sr.sprite = clothRight; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "BodyArmor":
-                    if (useCustomCape) { sr.enabled = false; }
-                    else if (armorBody != null) { sr.sprite = armorBody; sr.color = Color.white; sr.enabled = true; }
+                    if (armorBody != null) { sr.sprite = armorBody; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "25_L_Shoulder":
-                    if (useCustomCape) { sr.enabled = false; }
-                    else if (armorLeft != null) { sr.sprite = armorLeft; sr.color = Color.white; sr.enabled = true; }
+                    if (armorLeft != null) { sr.sprite = armorLeft; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "-15_R_Shoulder":
-                    if (useCustomCape) { sr.enabled = false; }
-                    else if (armorRight != null) { sr.sprite = armorRight; sr.color = Color.white; sr.enabled = true; }
+                    if (armorRight != null) { sr.sprite = armorRight; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "_2L_Cloth":
                     if (pantLeft != null) { sr.sprite = pantLeft; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "_11R_Cloth":
                     if (pantRight != null) { sr.sprite = pantRight; sr.color = Color.white; sr.enabled = true; }
-                    break;
-                case "Back":
-                    if (useCustomCape)
-                    {
-                        sr.sprite = mageCapeSprite;
-                        sr.color = Color.white;
-                        sr.enabled = true;
-                        sr.sortingOrder = 3;
-                        sr.transform.localPosition = new Vector3(0.01f, 0.02f, 0f);
-                        sr.transform.localScale = new Vector3(0.095f, 0.095f, 1f);
-                        visualCape = sr.gameObject;
-                    }
                     break;
                 case "11_Helmet1":
                     if (mageHatSprite != null)
@@ -922,17 +905,14 @@ public class PlayerController : MonoBehaviour
                         sr.color = Color.white;
                         sr.enabled = true;
                         sr.sortingOrder = 11;
-                        sr.transform.localPosition = new Vector3(0.02f, 0.34f, 0f);
-                        sr.transform.localScale = new Vector3(0.080f, 0.080f, 1f);
+                        sr.transform.localPosition = new Vector3(0.02f, 0.16f, 0f);
+                        sr.transform.localScale = new Vector3(1.05f, 1.05f, 1f);
                     }
                     break;
             }
         }
 
-        if (!useCustomCape)
-            EquipCape();
-        else
-            ActualizarTextoDano();
+        EquipCape();
 
         if (scaleMultiplier > 1.01f)
         {

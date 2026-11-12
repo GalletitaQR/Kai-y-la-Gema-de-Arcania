@@ -35413,8 +35413,8 @@ MonoBehaviour:
   mageArmorRight: {fileID: -8979658097689788454, guid: cbbec0e6e4ba46f38c42d855a2efb10e, type: 3}
   magePantLeft: {fileID: -3140455820982803383, guid: f71ba98f5e5894a9e9a109dc34922832, type: 3}
   magePantRight: {fileID: 7313079964742260036, guid: f71ba98f5e5894a9e9a109dc34922832, type: 3}
-  mageCapeSprite: {fileID: 1610842411531753970, guid: 630269592609ea049919546a0ae0eac1, type: 3}
-  mageHatSprite: {fileID: -3913329472721621003, guid: 34482d72a34cb2849b6d8ae96aa9f7a0, type: 3}
+  mageCapeSprite: {fileID: 0}
+  mageHatSprite: {fileID: 21300000, guid: 7b9e4d3f2a1c48f09c5a8b7e6d4f3a21, type: 3}
   infectedWorldSprite: {fileID: -5859928324443106399, guid: 43492dd2dca222d458d358099aba97cb, type: 3}
   expandingPortalSprite: {fileID: -3307617492558021158, guid: a84bf14cc760c68418115f7fa6c8c10b, type: 3}
   healedWorldSprite: {fileID: 879639340787135689, guid: c9357132706d87741b198242198489d6, type: 3}
