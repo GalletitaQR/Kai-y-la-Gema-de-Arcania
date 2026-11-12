@@ -45,6 +45,8 @@ public class ArcaniaFinalEnding : MonoBehaviour
     public Sprite mageArmorRight;
     public Sprite magePantLeft;
     public Sprite magePantRight;
+    public Sprite mageCapeSprite;
+    public Sprite mageHatSprite;
 
     [Header("Cinemática Final del Portal en Arcanía")]
     public Sprite infectedWorldSprite;
@@ -216,8 +218,8 @@ public class ArcaniaFinalEnding : MonoBehaviour
         CameraFollow camFollow = Camera.main != null ? Camera.main.GetComponent<CameraFollow>() : FindAnyObjectByType<CameraFollow>();
         if (camFollow != null)
         {
-            Vector2 closeTarget = (Vector2)player.transform.position + new Vector2(0f, 0.72f);
-            camFollow.FocusCutscene(closeTarget, 3.35f);
+            Vector2 closeTarget = (Vector2)player.transform.position + new Vector2(0f, 0.95f);
+            camFollow.FocusCutscene(closeTarget, 2.65f);
             yield return new WaitForSeconds(0.55f);
         }
 
@@ -227,13 +229,13 @@ public class ArcaniaFinalEnding : MonoBehaviour
         {
             MessageBanner.Instance.Show(transformationMessage, 4.0f);
         }
-        yield return new WaitForSeconds(2.05f);
+        yield return new WaitForSeconds(2.15f);
 
         // Reencuadrar cámara hacia Kai y el altar del portal antes de cerrarlo
         if (camFollow != null)
         {
-            Vector2 altarFocus = Vector2.Lerp((Vector2)player.transform.position, (Vector2)portalPos, 0.45f) + new Vector2(0f, 0.65f);
-            camFollow.FocusCutscene(altarFocus, 5.4f);
+            Vector2 altarFocus = Vector2.Lerp((Vector2)player.transform.position, (Vector2)portalPos, 0.45f) + new Vector2(0f, 0.85f);
+            camFollow.FocusCutscene(altarFocus, 4.85f);
             yield return new WaitForSeconds(0.45f);
         }
 
@@ -359,7 +361,8 @@ public class ArcaniaFinalEnding : MonoBehaviour
                 player.TransformToMageOutfit(
                     mageClothBody, mageClothLeft, mageClothRight,
                     mageArmorBody, mageArmorLeft, mageArmorRight,
-                    magePantLeft, magePantRight);
+                    magePantLeft, magePantRight,
+                    mageCapeSprite, mageHatSprite, 1.48f);
 
                 Vector3 burstPos = player.transform.position + new Vector3(0f, 0.55f + liftY, 0f);
                 MagicFX.SpawnShockwave(burstPos, new Color(1f, 0.92f, 0.45f, 0.95f), 3.4f, 0.50f);
@@ -404,6 +407,8 @@ public class ArcaniaFinalEnding : MonoBehaviour
         if (mageArmorRight == null) mageArmorRight = LoadSubSpriteAsset(armorPath, "Right");
         if (magePantLeft == null) magePantLeft = LoadSubSpriteAsset(pantPath, "Left");
         if (magePantRight == null) magePantRight = LoadSubSpriteAsset(pantPath, "Right");
+        if (mageCapeSprite == null) mageCapeSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/capa.png");
+        if (mageHatSprite == null) mageHatSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/sombrero.png");
 #endif
     }
 
@@ -800,8 +805,8 @@ public class ArcaniaFinalEnding : MonoBehaviour
         GameObject kaiGo = new GameObject("UiKaiMage", typeof(RectTransform));
         kaiUiRect = kaiGo.GetComponent<RectTransform>();
         kaiUiRect.SetParent(worldRect, false);
-        kaiUiRect.anchorMin = new Vector2(0.755f, 0.235f);
-        kaiUiRect.anchorMax = new Vector2(0.755f, 0.235f);
+        kaiUiRect.anchorMin = new Vector2(0.76f, 0.21f);
+        kaiUiRect.anchorMax = new Vector2(0.76f, 0.21f);
         kaiUiRect.pivot = new Vector2(0.5f, 0f);
         kaiUiRect.sizeDelta = Vector2.zero;
         kaiUiRect.anchoredPosition = Vector2.zero;
@@ -813,8 +818,8 @@ public class ArcaniaFinalEnding : MonoBehaviour
         auraRect.anchorMin = new Vector2(0.5f, 0.5f);
         auraRect.anchorMax = new Vector2(0.5f, 0.5f);
         auraRect.pivot = new Vector2(0.5f, 0.5f);
-        auraRect.sizeDelta = new Vector2(210f, 110f);
-        auraRect.anchoredPosition = new Vector2(0f, 15f);
+        auraRect.sizeDelta = new Vector2(280f, 140f);
+        auraRect.anchoredPosition = new Vector2(0f, 20f);
 
         Image auraImg = auraGo.GetComponent<Image>();
         auraImg.sprite = MagicFX.GlowSprite;

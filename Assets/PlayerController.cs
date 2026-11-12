@@ -862,12 +862,16 @@ public class PlayerController : MonoBehaviour
         return transform;
     }
 
-    /// <summary>Cambia únicamente la vestimenta del cuerpo de Kai al atuendo de Mago de Arcanía (conservando cabeza y rostro).</summary>
+    /// <summary>Cambia la vestimenta de Kai al atuendo de Mago de Arcanía (capa, sombrero y túnica, conservando rostro/cabello) y aumenta su tamaño.</summary>
     public void TransformToMageOutfit(
         Sprite clothBody, Sprite clothLeft, Sprite clothRight,
         Sprite armorBody, Sprite armorLeft, Sprite armorRight,
-        Sprite pantLeft, Sprite pantRight)
+        Sprite pantLeft, Sprite pantRight,
+        Sprite mageCapeSprite = null, Sprite mageHatSprite = null,
+        float scaleMultiplier = 1.48f)
     {
+        bool useCustomCape = mageCapeSprite != null;
+
         foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
         {
             switch (sr.gameObject.name)
@@ -882,13 +886,16 @@ public class PlayerController : MonoBehaviour
                     if (clothRight != null) { sr.sprite = clothRight; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "BodyArmor":
-                    if (armorBody != null) { sr.sprite = armorBody; sr.color = Color.white; sr.enabled = true; }
+                    if (useCustomCape) { sr.enabled = false; }
+                    else if (armorBody != null) { sr.sprite = armorBody; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "25_L_Shoulder":
-                    if (armorLeft != null) { sr.sprite = armorLeft; sr.color = Color.white; sr.enabled = true; }
+                    if (useCustomCape) { sr.enabled = false; }
+                    else if (armorLeft != null) { sr.sprite = armorLeft; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "-15_R_Shoulder":
-                    if (armorRight != null) { sr.sprite = armorRight; sr.color = Color.white; sr.enabled = true; }
+                    if (useCustomCape) { sr.enabled = false; }
+                    else if (armorRight != null) { sr.sprite = armorRight; sr.color = Color.white; sr.enabled = true; }
                     break;
                 case "_2L_Cloth":
                     if (pantLeft != null) { sr.sprite = pantLeft; sr.color = Color.white; sr.enabled = true; }
@@ -896,10 +903,42 @@ public class PlayerController : MonoBehaviour
                 case "_11R_Cloth":
                     if (pantRight != null) { sr.sprite = pantRight; sr.color = Color.white; sr.enabled = true; }
                     break;
+                case "Back":
+                    if (useCustomCape)
+                    {
+                        sr.sprite = mageCapeSprite;
+                        sr.color = Color.white;
+                        sr.enabled = true;
+                        sr.sortingOrder = 3;
+                        sr.transform.localPosition = new Vector3(0.01f, 0.02f, 0f);
+                        sr.transform.localScale = new Vector3(0.095f, 0.095f, 1f);
+                        visualCape = sr.gameObject;
+                    }
+                    break;
+                case "11_Helmet1":
+                    if (mageHatSprite != null)
+                    {
+                        sr.sprite = mageHatSprite;
+                        sr.color = Color.white;
+                        sr.enabled = true;
+                        sr.sortingOrder = 11;
+                        sr.transform.localPosition = new Vector3(0.02f, 0.34f, 0f);
+                        sr.transform.localScale = new Vector3(0.080f, 0.080f, 1f);
+                    }
+                    break;
             }
         }
 
-        EquipCape();
+        if (!useCustomCape)
+            EquipCape();
+        else
+            ActualizarTextoDano();
+
+        if (scaleMultiplier > 1.01f)
+        {
+            originalScale *= scaleMultiplier;
+            SetVisualFacing();
+        }
     }
 
     public void StartInvincibility(float duration)
