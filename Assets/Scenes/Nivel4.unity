@@ -35401,7 +35401,11 @@ MonoBehaviour:
   gemGlowColor: {r: 0.35, g: 0.95, b: 1, a: 0.9}
   portalColor: {r: 0.75, g: 0.3, b: 1, a: 0.9}
   pickupMessage: "\xA1Has recuperado la Gema de Arcan\xEDa! Canalizando su poder para sellar el Portal..."
+  extendingPortalMessage: "\xA1Cuidado! \xA1Aunque el altar cay\xF3, el portal principal sobre Arcan\xEDa se est\xE1 extendiendo!"
   closingMessage: "\xA1El Portal ha sido cerrado para siempre! Kai se ha convertido en un Verdadero Mago de Arcan\xEDa."
+  infectedWorldSprite: {fileID: -5859928324443106399, guid: 43492dd2dca222d458d358099aba97cb, type: 3}
+  expandingPortalSprite: {fileID: -3307617492558021158, guid: a84bf14cc760c68418115f7fa6c8c10b, type: 3}
+  healedWorldSprite: {fileID: 879639340787135689, guid: c9357132706d87741b198242198489d6, type: 3}
 --- !u!1 &803397029
 GameObject:
   m_ObjectHideFlags: 0

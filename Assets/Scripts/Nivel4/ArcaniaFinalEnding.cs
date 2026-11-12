@@ -2,6 +2,9 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 /// <summary>
 /// Cierre del Nivel 4 ("Templo de Arcania") y final de la historia:
@@ -24,7 +27,14 @@ public class ArcaniaFinalEnding : MonoBehaviour
     [TextArea]
     public string pickupMessage = "¡Has recuperado la Gema de Arcanía! Canalizando su poder para sellar el Portal...";
     [TextArea]
+    public string extendingPortalMessage = "¡Cuidado! ¡Aunque el altar cayó, el portal principal sobre Arcanía se está extendiendo!";
+    [TextArea]
     public string closingMessage = "¡El Portal ha sido cerrado para siempre! Kai se ha convertido en un Verdadero Mago de Arcanía.";
+
+    [Header("Cinemática Final del Portal en Arcanía")]
+    public Sprite infectedWorldSprite;
+    public Sprite expandingPortalSprite;
+    public Sprite healedWorldSprite;
 
     private bool sequenceStarted = false;
     private SpriteRenderer gemRenderer;
@@ -226,11 +236,24 @@ public class ArcaniaFinalEnding : MonoBehaviour
             portalTransform.gameObject.SetActive(false);
         }
 
-        // Gran destello final al cerrarse el portal
+        // Gran destello final al cerrarse el portal del altar
         MagicFX.SpawnShockwave(portalPos, new Color(1f, 0.92f, 0.45f, 0.95f), 4.0f, 0.6f);
         MagicFX.Burst(portalPos, new Color(1f, 0.92f, 0.45f, 1f), 65, 0.7f);
         MagicFX.Burst(portalPos, gemGlowColor, 55, 0.65f);
 
+        yield return new WaitForSeconds(0.45f);
+
+        // 4. Aviso de que el portal principal sobre Arcanía se está extendiendo y secuencia ilustrada de cierre
+        if (MessageBanner.Instance != null && !string.IsNullOrEmpty(extendingPortalMessage))
+        {
+            MessageBanner.Instance.Show(extendingPortalMessage, 4.5f);
+        }
+
+        yield return new WaitForSeconds(1.35f);
+
+        yield return StartCoroutine(PlayFullscreenPortalSealSequence());
+
+        // 5. Mensaje de cierre sobre Arcanía restaurada
         if (MessageBanner.Instance != null)
         {
             MessageBanner.Instance.Show(closingMessage, 5.5f);
@@ -238,13 +261,281 @@ public class ArcaniaFinalEnding : MonoBehaviour
 
         yield return new WaitForSeconds(2.6f);
 
-        // 4. Personalizar y mostrar la Pantalla Final con opción de volver al menú
+        // 6. Personalizar y mostrar la Pantalla Final con opción de volver al menú
         CustomizeFinalVictoryScreen();
 
         if (GameManager.Instance != null)
         {
             GameManager.Instance.CompleteLevel();
         }
+    }
+
+    private void OnValidate()
+    {
+        EnsureCinematicSprites();
+    }
+
+    private void EnsureCinematicSprites()
+    {
+#if UNITY_EDITOR
+        if (infectedWorldSprite == null)
+            infectedWorldSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/portalinfecta.png");
+        if (expandingPortalSprite == null)
+            expandingPortalSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/porfal_sin_fondo.png");
+        if (healedWorldSprite == null)
+            healedWorldSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/fondomenu.png");
+#endif
+    }
+
+#if UNITY_EDITOR
+    private static Sprite LoadSpriteAsset(string assetPath)
+    {
+        Sprite direct = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+        if (direct != null) return direct;
+
+        Object[] all = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+        foreach (Object obj in all)
+        {
+            if (obj is Sprite sprite)
+                return sprite;
+        }
+        return null;
+    }
+#endif
+
+    private IEnumerator PlayFullscreenPortalSealSequence()
+    {
+        EnsureCinematicSprites();
+
+        if (infectedWorldSprite == null && expandingPortalSprite == null && healedWorldSprite == null)
+            yield break;
+
+        Transform uiParent = null;
+        int insertIndex = 0;
+
+        if (MessageBanner.Instance != null && MessageBanner.Instance.transform.parent != null)
+        {
+            uiParent = MessageBanner.Instance.transform.parent;
+            insertIndex = MessageBanner.Instance.transform.GetSiblingIndex();
+        }
+        else
+        {
+            GameObject canvasGo = new GameObject("PortalEndingCinematicCanvas");
+            Canvas fallbackCanvas = canvasGo.AddComponent<Canvas>();
+            fallbackCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            fallbackCanvas.sortingOrder = 5;
+            CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+            canvasGo.AddComponent<GraphicRaycaster>();
+            uiParent = canvasGo.transform;
+        }
+
+        GameObject root = new GameObject("PortalEndingCinematic", typeof(RectTransform), typeof(CanvasGroup));
+        RectTransform rootRect = root.GetComponent<RectTransform>();
+        rootRect.SetParent(uiParent, false);
+        rootRect.SetSiblingIndex(insertIndex);
+        StretchFull(rootRect);
+
+        CanvasGroup rootGroup = root.GetComponent<CanvasGroup>();
+        rootGroup.alpha = 0f;
+        rootGroup.blocksRaycasts = true;
+        rootGroup.interactable = false;
+
+        // Fondo oscuro sólido para cubrir el gameplay detrás de las ilustraciones
+        Image backdrop = CreateFullscreenImage("Backdrop", rootRect, null, new Color(0.03f, 0.02f, 0.07f, 1f));
+        backdrop.raycastTarget = true;
+
+        // Contenedor del mundo para poder aplicar vibración sin mover el marco
+        GameObject worldGo = new GameObject("WorldContainer", typeof(RectTransform));
+        RectTransform worldRect = worldGo.GetComponent<RectTransform>();
+        worldRect.SetParent(rootRect, false);
+        StretchFull(worldRect);
+
+        // 1. Fondo final restaurado (fondomenu.png)
+        CreateFullscreenImage("HealedWorldImage", worldRect, healedWorldSprite, Color.white);
+
+        // 2. Mundo infectado (portalinfecta.png) que se disolverá al sellarse el portal
+        Image infectedWorldImg = CreateFullscreenImage("InfectedWorldImage", worldRect, infectedWorldSprite, Color.white);
+
+        // 3. Portal abierto + portal expandiéndose (porfal_sin_fondo.png), alineado 1:1 al recorte (78,0,1006,765) sobre 1376x768
+        RectTransform expandingPortalRect = null;
+        Image expandingPortalImg = null;
+        if (expandingPortalSprite != null)
+        {
+            GameObject portalGo = new GameObject("ExpandingPortalImage", typeof(RectTransform), typeof(Image));
+            expandingPortalRect = portalGo.GetComponent<RectTransform>();
+            expandingPortalRect.SetParent(worldRect, false);
+            expandingPortalRect.anchorMin = new Vector2(78f / 1376f, 0f);
+            expandingPortalRect.anchorMax = new Vector2((78f + 1006f) / 1376f, 765f / 768f);
+            expandingPortalRect.pivot = new Vector2(0.5f, 0.5f);
+            expandingPortalRect.offsetMin = Vector2.zero;
+            expandingPortalRect.offsetMax = Vector2.zero;
+
+            expandingPortalImg = portalGo.GetComponent<Image>();
+            expandingPortalImg.sprite = expandingPortalSprite;
+            expandingPortalImg.preserveAspect = false;
+            expandingPortalImg.raycastTarget = false;
+        }
+
+        // 4. Halo energético centrado en el corazón del portal (x=0.4222, y=0.4974)
+        GameObject glowGo = new GameObject("PortalEnergyGlow", typeof(RectTransform), typeof(Image));
+        RectTransform glowRect = glowGo.GetComponent<RectTransform>();
+        glowRect.SetParent(worldRect, false);
+        glowRect.anchorMin = new Vector2(0.4222f, 0.4974f);
+        glowRect.anchorMax = new Vector2(0.4222f, 0.4974f);
+        glowRect.pivot = new Vector2(0.5f, 0.5f);
+        glowRect.sizeDelta = new Vector2(520f, 520f);
+        glowRect.anchoredPosition = Vector2.zero;
+
+        Image glowImg = glowGo.GetComponent<Image>();
+        glowImg.sprite = MagicFX.GlowSprite;
+        glowImg.color = new Color(portalColor.r, portalColor.g, portalColor.b, 0f);
+        glowImg.raycastTarget = false;
+
+        // 5. Destello final de pantalla completa
+        Image flashImg = CreateFullscreenImage("FlashOverlay", rootRect, null, new Color(1f, 0.95f, 0.72f, 0f));
+
+        // Fase A: Fundido de entrada hacia Arcanía infectada
+        float fadeInDuration = 0.55f;
+        float elapsed = 0f;
+        while (elapsed < fadeInDuration)
+        {
+            elapsed += Time.deltaTime;
+            rootGroup.alpha = Mathf.Clamp01(elapsed / fadeInDuration);
+            yield return null;
+        }
+        rootGroup.alpha = 1f;
+
+        // Fase B: El portal se expande y late amenazantemente sobre el reino
+        float threatDuration = 1.15f;
+        elapsed = 0f;
+        while (elapsed < threatDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / threatDuration);
+            if (expandingPortalRect != null)
+            {
+                float scale = Mathf.Lerp(0.96f, 1.07f, t) + Mathf.Sin(t * Mathf.PI * 3f) * 0.018f;
+                expandingPortalRect.localScale = new Vector3(scale, scale, 1f);
+            }
+            glowImg.color = new Color(portalColor.r, portalColor.g, portalColor.b, Mathf.Sin(t * Mathf.PI) * 0.42f);
+            glowRect.localScale = Vector3.one * Mathf.Lerp(0.85f, 1.25f, t);
+            worldRect.anchoredPosition = Random.insideUnitCircle * 4.5f;
+            yield return null;
+        }
+        worldRect.anchoredPosition = Vector2.zero;
+
+        // Fase C: Tres descargas de la Gema de Arcanía impactan el portal principal
+        for (int i = 0; i < 3; i++)
+        {
+            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.playerAttack : null);
+            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.magicBolt : null);
+
+            Color pulseTint = Color.Lerp(gemGlowColor, new Color(1f, 0.94f, 0.55f, 1f), (i + 1) / 3f);
+            float pulseDuration = 0.55f;
+            elapsed = 0f;
+            while (elapsed < pulseDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / pulseDuration);
+                float wave = Mathf.Sin(t * Mathf.PI);
+
+                glowImg.color = new Color(pulseTint.r, pulseTint.g, pulseTint.b, wave * 0.85f);
+                glowRect.localScale = Vector3.one * Mathf.Lerp(0.45f, 1.85f, t);
+
+                if (expandingPortalImg != null)
+                {
+                    expandingPortalImg.color = Color.Lerp(Color.white, new Color(0.75f, 1f, 1f, 1f), wave * 0.65f);
+                    float recoil = Mathf.Lerp(1.06f, 0.98f, t) - wave * 0.04f;
+                    expandingPortalRect.localScale = new Vector3(recoil, recoil, 1f);
+                }
+
+                worldRect.anchoredPosition = Random.insideUnitCircle * (6.5f * (1f - t));
+                yield return null;
+            }
+
+            if (expandingPortalImg != null)
+                expandingPortalImg.color = Color.white;
+            worldRect.anchoredPosition = Vector2.zero;
+            yield return new WaitForSeconds(0.12f);
+        }
+
+        // Fase D: Mismo efecto de giro y contracción hacia cero mientras el reino sana (portalinfecta -> fondomenu)
+        Vector3 portalStartScale = expandingPortalRect != null ? expandingPortalRect.localScale : Vector3.one;
+        float closeDuration = 1.65f;
+        elapsed = 0f;
+        while (elapsed < closeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / closeDuration);
+            float shrinkT = t * t;
+
+            if (expandingPortalRect != null)
+            {
+                expandingPortalRect.localScale = Vector3.Lerp(portalStartScale, Vector3.zero, shrinkT);
+                expandingPortalRect.Rotate(0f, 0f, 420f * Time.deltaTime);
+            }
+
+            if (infectedWorldImg != null)
+            {
+                float healT = Mathf.Clamp01((t - 0.15f) / 0.85f);
+                infectedWorldImg.color = new Color(1f, 1f, 1f, 1f - healT);
+            }
+
+            glowImg.color = new Color(1f, 0.94f, 0.58f, Mathf.Sin(t * Mathf.PI) * 0.65f);
+            glowRect.localScale = Vector3.one * Mathf.Lerp(1.1f, 0.25f, t);
+            worldRect.anchoredPosition = Random.insideUnitCircle * (5f * (1f - t));
+            yield return null;
+        }
+
+        worldRect.anchoredPosition = Vector2.zero;
+        if (expandingPortalRect != null)
+            expandingPortalRect.gameObject.SetActive(false);
+        if (infectedWorldImg != null)
+            infectedWorldImg.color = new Color(1f, 1f, 1f, 0f);
+
+        // Fase E: Destello dorado-cian final al cerrarse por completo el portal
+        AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.victory : null);
+        float flashDuration = 0.85f;
+        elapsed = 0f;
+        while (elapsed < flashDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / flashDuration);
+            flashImg.color = new Color(1f, 0.95f, 0.72f, Mathf.Lerp(0.92f, 0f, t));
+            glowImg.color = new Color(gemGlowColor.r, gemGlowColor.g, gemGlowColor.b, Mathf.Lerp(0.7f, 0f, t));
+            glowRect.localScale = Vector3.one * Mathf.Lerp(0.4f, 2.6f, t);
+            yield return null;
+        }
+
+        flashImg.color = new Color(1f, 0.95f, 0.72f, 0f);
+        glowImg.color = new Color(gemGlowColor.r, gemGlowColor.g, gemGlowColor.b, 0f);
+    }
+
+    private static Image CreateFullscreenImage(string name, Transform parent, Sprite sprite, Color color)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.SetParent(parent, false);
+        StretchFull(rt);
+
+        Image img = go.GetComponent<Image>();
+        img.sprite = sprite;
+        img.color = color;
+        img.preserveAspect = false;
+        img.raycastTarget = false;
+        return img;
+    }
+
+    private static void StretchFull(RectTransform rt)
+    {
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
     }
 
     private void CustomizeFinalVictoryScreen()
