@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8800003003}
   - component: {fileID: 8800003004}
   - component: {fileID: 8800003005}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: HechizoMageOscuro
   m_TagString: Untagged
   m_Icon: {fileID: 0}

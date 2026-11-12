@@ -29,7 +29,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
     [TextArea]
     public string extendingPortalMessage = "¡Cuidado! ¡Aunque el altar cayó, el portal principal sobre Arcanía se está extendiendo!";
     [TextArea]
-    public string closingMessage = "¡El Portal ha sido cerrado para siempre! Kai se ha convertido en un Verdadero Mago de Arcanía.";
+    public string closingMessage = "¡El Portal ha sido cerrado para siempre! Kai se ha convertido en el nuevo Mago de Arcanía.";
 
     [Header("Cinemática Final del Portal en Arcanía")]
     public Sprite infectedWorldSprite;
@@ -143,7 +143,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
         if (MessageBanner.Instance != null)
         {
             string bannerText = string.IsNullOrEmpty(pickupMessage) || pickupMessage.Contains("Canalizando su poder para sellar")
-                ? "¡Has recuperado la Gema de Arcanía! (Escena final: Kai sellará el Portal automáticamente...)"
+                ? "¡Has recuperado la Gema de Arcanía!"
                 : pickupMessage;
             MessageBanner.Instance.Show(bannerText, 3.8f);
         }

@@ -32802,8 +32802,8 @@ Transform:
   m_GameObject: {fileID: 800000600}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 131.5, y: 0.85, z: 0}
-  m_LocalScale: {x: 0.28, y: 0.28, z: 1}
+  m_LocalPosition: {x: 125.5, y: 0.95, z: 0}
+  m_LocalScale: {x: 0.35, y: 0.35, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 800000605}
@@ -33406,7 +33406,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 800000600}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -33478,13 +33478,13 @@ MonoBehaviour:
   fallbackSpellSprite: {fileID: 21300000, guid: db2cb8f03c8d7044c9a8b35233aaa2d7, type: 3}
   castPoint: {fileID: 800000610}
   attackRange: 17.5
-  castInterval: 2.8
-  spellSpeed: 6.8
-  spellDamage: 14
+  castInterval: 2.6
+  spellSpeed: 7.2
+  spellDamage: 15
   spellColor: {r: 0.72, g: 0.28, b: 1, a: 0.95}
   teleportBetweenPerches: 1
-  perchRight: {x: 131.5, y: 0.85, z: 0}
-  perchLeft: {x: 119.5, y: 0.85, z: 0}
+  perchRight: {x: 125.5, y: 0.95, z: 0}
+  perchLeft: {x: 119.5, y: 0.95, z: 0}
   castsBeforeTeleport: 2
   maxHealth: 100
   currentHealth: 100
@@ -35119,7 +35119,7 @@ MonoBehaviour:
   - {x: 119.5, y: 1.75, z: 0}
   maxHealth: 300
   currentHealth: 300
-  contactDamage: 10
+  contactDamage: 12
   scoreValue: 500
 --- !u!1 &800000620
 GameObject:
@@ -35402,7 +35402,7 @@ MonoBehaviour:
   portalColor: {r: 0.75, g: 0.3, b: 1, a: 0.9}
   pickupMessage: "\xA1Has recuperado la Gema de Arcan\xEDa! Canalizando su poder para sellar el Portal..."
   extendingPortalMessage: "\xA1Cuidado! \xA1Aunque el altar cay\xF3, el portal principal sobre Arcan\xEDa se est\xE1 extendiendo!"
-  closingMessage: "\xA1El Portal ha sido cerrado para siempre! Kai se ha convertido en un Verdadero Mago de Arcan\xEDa."
+  closingMessage: "\xA1El Portal ha sido cerrado para siempre! Kai se ha convertido en el nuevo Mago de Arcan\xEDa."
   infectedWorldSprite: {fileID: -5859928324443106399, guid: 43492dd2dca222d458d358099aba97cb, type: 3}
   expandingPortalSprite: {fileID: -3307617492558021158, guid: a84bf14cc760c68418115f7fa6c8c10b, type: 3}
   healedWorldSprite: {fileID: 879639340787135689, guid: c9357132706d87741b198242198489d6, type: 3}

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Jefe Final del Nivel 4 ("Templo de Arcania"): Dragón Guardián (DragonRed).
@@ -81,6 +82,7 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
 
     private Transform player;
     private PlayerController playerController;
+    private Collider2D playerCollider;
     private Animator animator;
     private Rigidbody2D rb;
     private Collider2D bossCollider;
@@ -110,6 +112,11 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
             rb.gravityScale = 0f;
         }
 
+        SortingGroup sg = GetComponent<SortingGroup>();
+        if (sg == null) sg = gameObject.AddComponent<SortingGroup>();
+        sg.sortingLayerName = "Enemies";
+        sg.sortingOrder = 8;
+
         baseScaleX = Mathf.Abs(transform.localScale.x);
         if (baseScaleX < 0.01f) baseScaleX = 0.38f;
 
@@ -131,6 +138,8 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
             {
                 player = playerObj.transform;
                 playerController = playerObj.GetComponentInParent<PlayerController>();
+                if (playerController == null) playerController = playerObj.GetComponent<PlayerController>();
+                playerCollider = playerObj.GetComponent<Collider2D>();
             }
             if (player == null) return;
         }
@@ -151,7 +160,37 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
         if (!combatStarted && player.position.x >= bossRoomTriggerX)
             StartBossFight();
 
+        if (combatStarted && !isVulnerable && PlayerAvailable)
+            CheckBossContactDamage();
+
         activeCrystals.RemoveAll(c => c == null);
+    }
+
+    private void CheckBossContactDamage()
+    {
+        if (Time.time - lastContactDamageTime < 0.9f || playerController == null) return;
+
+        bool touching;
+        if (bossCollider != null && bossCollider.enabled && playerCollider != null)
+        {
+            Bounds bossBounds = bossCollider.bounds;
+            bossBounds.Expand(-0.15f);
+            touching = bossBounds.Intersects(playerCollider.bounds);
+        }
+        else
+        {
+            touching = Mathf.Abs(player.position.x - transform.position.x) <= 1.25f &&
+                       Mathf.Abs(player.position.y - transform.position.y) <= 1.6f;
+        }
+
+        if (!touching) return;
+
+        // Durante la embestida solo golpea a ras de suelo: si Kai salta, la esquiva
+        if (lowHitOnly && player.position.y > groundY + 0.65f) return;
+
+        int dmg = lowHitOnly ? chargeDamage : contactDamage;
+        playerController.TakeDamage(dmg, transform);
+        lastContactDamageTime = Time.time;
     }
 
     private bool PlayerAvailable =>

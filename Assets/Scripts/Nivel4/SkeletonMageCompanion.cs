@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Mage Esqueleto acompañante del Dragón Guardián en la Sala del Trono (Nivel 4).
@@ -20,23 +21,28 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
 
     [Header("Reposicionamiento en la Arena")]
     public bool teleportBetweenPerches = true;
-    public Vector3 perchRight = new Vector3(131.5f, 0.85f, 0f);
-    public Vector3 perchLeft = new Vector3(119.5f, 0.85f, 0f);
+    public Vector3 perchRight = new Vector3(125.5f, 0.95f, 0f);
+    public Vector3 perchLeft = new Vector3(119.5f, 0.95f, 0f);
     public int castsBeforeTeleport = 2;
 
-    [Header("Vida y Puntaje")]
+    [Header("Vida, Contacto y Puntaje")]
     public int maxHealth = 120;
     public int currentHealth = 120;
+    public int contactDamage = 10;
     public int scoreValue = 80;
     public BarraVida barraVida;
 
     private Transform player;
+    private PlayerController playerController;
+    private Collider2D playerCollider;
     private Animator animator;
     private Rigidbody2D rb;
     private Collider2D mageCollider;
 
-    private float baseScaleX = 0.28f;
-    private float castTimer = 1.6f;
+    private float baseScaleX = 0.35f;
+    private float castTimer = 0.9f;
+    private float lastContactDamageTime = -10f;
+    private Vector3 basePerchPos;
     private int castCount = 0;
     private bool onRightPerch = true;
     private bool isCasting = false;
@@ -51,8 +57,24 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
         rb = GetComponent<Rigidbody2D>();
         mageCollider = GetComponent<Collider2D>();
 
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            rb.gravityScale = 0f;
+            rb.linearVelocity = Vector2.zero;
+        }
+
+        SortingGroup sg = GetComponent<SortingGroup>();
+        if (sg == null) sg = gameObject.AddComponent<SortingGroup>();
+        sg.sortingLayerName = "Enemies";
+        sg.sortingOrder = 10;
+
+        MagicFX.AddGlow(transform, new Color(spellColor.r, spellColor.g, spellColor.b, 0.45f), 2.5f);
+        MagicFX.AddSparkles(transform, spellColor, 0.7f, 12f);
+
         baseScaleX = Mathf.Abs(transform.localScale.x);
-        if (baseScaleX < 0.01f) baseScaleX = 0.28f;
+        if (baseScaleX < 0.01f) baseScaleX = 0.35f;
+        basePerchPos = transform.position;
 
         currentHealth = maxHealth;
         if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
@@ -70,13 +92,19 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
         if (player == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) player = playerObj.transform;
+            if (playerObj != null)
+            {
+                player = playerObj.transform;
+                playerController = playerObj.GetComponentInParent<PlayerController>();
+                if (playerController == null) playerController = playerObj.GetComponent<PlayerController>();
+                playerCollider = playerObj.GetComponent<Collider2D>();
+            }
             if (player == null) return;
         }
 
         if (!combatActive)
         {
-            if (player.position.x >= 114.2f)
+            if (player.position.x >= 113.5f)
             {
                 combatActive = true;
             }
@@ -86,7 +114,17 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
             }
         }
 
+        if (playerController != null && playerController.IsDead) return;
+        if (GameManager.Instance != null && GameManager.Instance.State != GameState.Playing) return;
+
+        // Flotación suave sobre la percha para destacarse claramente en la arena
+        transform.position = new Vector3(
+            basePerchPos.x,
+            basePerchPos.y + Mathf.Sin(Time.time * 2.4f) * 0.14f,
+            basePerchPos.z);
+
         FaceDirection(player.position.x - transform.position.x);
+        CheckContactDamage();
 
         float dist = Vector2.Distance(transform.position, player.position);
         if (dist <= attackRange && !isCasting)
@@ -97,6 +135,26 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
                 StartCoroutine(CastSpellRoutine());
             }
         }
+    }
+
+    private void CheckContactDamage()
+    {
+        if (Time.time - lastContactDamageTime < 0.9f || playerController == null) return;
+
+        bool touching;
+        if (mageCollider != null && mageCollider.enabled && playerCollider != null)
+        {
+            touching = mageCollider.bounds.Intersects(playerCollider.bounds);
+        }
+        else
+        {
+            touching = Vector2.Distance(transform.position + Vector3.up * 0.5f, player.position + Vector3.up * 0.45f) <= 0.9f;
+        }
+
+        if (!touching) return;
+
+        playerController.TakeDamage(contactDamage, transform);
+        lastContactDamageTime = Time.time;
     }
 
     private IEnumerator CastSpellRoutine()
@@ -130,7 +188,8 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
             {
                 MagicFX.Burst(transform.position + Vector3.up * 0.6f, spellColor, 16, 0.35f);
                 onRightPerch = !onRightPerch;
-                transform.position = onRightPerch ? perchRight : perchLeft;
+                basePerchPos = onRightPerch ? perchRight : perchLeft;
+                transform.position = basePerchPos;
                 MagicFX.Burst(transform.position + Vector3.up * 0.6f, spellColor, 16, 0.35f);
             }
         }

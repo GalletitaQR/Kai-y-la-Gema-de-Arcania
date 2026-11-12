@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8800002003}
   - component: {fileID: 8800002004}
   - component: {fileID: 8800002005}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: BolaFuegoDragon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
