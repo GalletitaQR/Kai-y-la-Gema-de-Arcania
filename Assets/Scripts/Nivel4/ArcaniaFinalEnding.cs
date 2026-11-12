@@ -554,6 +554,10 @@ public class ArcaniaFinalEnding : MonoBehaviour
             if (tmp.gameObject.name.Contains("Title") || tmp.fontSize >= 28f)
             {
                 tmp.text = "¡PORTAL SELLADO!\nKAI ES UN VERDADERO MAGO DE ARCANÍA";
+                tmp.enableAutoSizing = true;
+                tmp.fontSizeMin = 36f;
+                tmp.fontSizeMax = 66f;
+                tmp.rectTransform.sizeDelta = new Vector2(1040f, 175f);
             }
         }
 
