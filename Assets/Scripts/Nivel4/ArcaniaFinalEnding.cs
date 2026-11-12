@@ -254,8 +254,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
             player.FaceDirection(dirToPortal);
             player.ForceAnimation(PlayerState.ATTACK);
 
-            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.playerAttack : null);
-            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.magicBolt : null);
+            PlayPortalPulseSfx();
 
             Vector3 castOrigin = player.transform.position + new Vector3(dirToPortal * 0.65f, 0.55f, 0f);
             Color pulseColor = Color.Lerp(portalColor, new Color(1f, 0.92f, 0.45f, 1f), (i + 1) / 3f);
@@ -548,7 +547,12 @@ public class ArcaniaFinalEnding : MonoBehaviour
         // 5. Destello final de pantalla completa
         Image flashImg = CreateFullscreenImage("FlashOverlay", rootRect, null, new Color(1f, 0.95f, 0.72f, 0f));
 
-        // Fase A: Fundido de entrada hacia la escena del portal
+        // Fase A: Fundido de entrada hacia la escena del portal (cambia música de fondo si está asignada)
+        if (AudioManager.Instance != null && AudioManager.Lib != null && AudioManager.Lib.finalPortalMusic != null)
+        {
+            AudioManager.Instance.PlayMusic(AudioManager.Lib.finalPortalMusic);
+        }
+
         float fadeInDuration = 0.55f;
         float elapsed = 0f;
         while (elapsed < fadeInDuration)
@@ -591,8 +595,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
         // Fase C: Kai lanza 3 pulsos mágicos desde su bastón hacia el portal principal
         for (int i = 0; i < 3; i++)
         {
-            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.playerAttack : null);
-            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.magicBolt : null);
+            PlayPortalPulseSfx();
 
             Color pulseTint = Color.Lerp(gemGlowColor, new Color(1f, 0.94f, 0.55f, 1f), (i + 1) / 3f);
 
@@ -1057,10 +1060,10 @@ public class ArcaniaFinalEnding : MonoBehaviour
         RectTransform popupRt = popupGo.GetComponent<RectTransform>();
         popupRt.SetParent(targetCanvas.transform, false);
         popupRt.SetAsLastSibling();
-        popupRt.anchorMin = new Vector2(0.5f, 0.68f);
-        popupRt.anchorMax = new Vector2(0.5f, 0.68f);
+        popupRt.anchorMin = new Vector2(0.5f, 0.56f);
+        popupRt.anchorMax = new Vector2(0.5f, 0.56f);
         popupRt.pivot = new Vector2(0.5f, 0.5f);
-        popupRt.sizeDelta = new Vector2(420f, 290f);
+        popupRt.sizeDelta = new Vector2(1050f, 720f);
         popupRt.anchoredPosition = Vector2.zero;
 
         CanvasGroup cg = popupGo.GetComponent<CanvasGroup>();
@@ -1072,7 +1075,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
         glowRt.SetParent(popupRt, false);
         glowRt.anchorMin = new Vector2(0.5f, 0.5f);
         glowRt.anchorMax = new Vector2(0.5f, 0.5f);
-        glowRt.sizeDelta = new Vector2(460f, 360f);
+        glowRt.sizeDelta = new Vector2(1220f, 860f);
         Image glowImg = glowGo.GetComponent<Image>();
         glowImg.sprite = MagicFX.GlowSprite;
         glowImg.color = new Color(0.85f, 0.48f, 1f, 0.65f);
@@ -1124,6 +1127,19 @@ public class ArcaniaFinalEnding : MonoBehaviour
         }
 
         Destroy(popupGo);
+    }
+
+    private static void PlayPortalPulseSfx()
+    {
+        if (AudioManager.Lib == null) return;
+        if (AudioManager.Lib.portalPulse != null)
+        {
+            AudioManager.PlaySfx(AudioManager.Lib.portalPulse);
+        }
+        else
+        {
+            AudioManager.PlaySfx(AudioManager.Lib.magicBolt);
+        }
     }
 }
 

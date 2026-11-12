@@ -106,6 +106,9 @@ public class GameManager : MonoBehaviour
         Bind(playAgainButton, PlayAgain);
         Bind(gameOverMenuButton, GoToMenu);
         Bind(nextLevelButton, GoToNextLevel);
+
+        if (playAgainButton != null)
+            playAgainButton.gameObject.SetActive(false);
     }
 
     private void AutoWireIfNeeded()
@@ -289,6 +292,7 @@ public class GameManager : MonoBehaviour
     public void Restart()
     {
         Time.timeScale = 1f;
+        SkipStartMenuOnce = true;
         ScreenFader.FadeAndLoad(SceneManager.GetActiveScene().name, 0.6f);
     }
 

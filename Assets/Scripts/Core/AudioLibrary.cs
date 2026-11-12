@@ -14,6 +14,8 @@ public class AudioLibrary : ScriptableObject
     public AudioClip level2Music;
     public AudioClip level3Music; // <--- Nuevo Nivel 3
     public AudioClip level4Music; // <--- Nuevo Nivel 4
+    [Tooltip("Música de fondo para la escena final donde Kai cierra el portal y termina en la imagen del menú")]
+    public AudioClip finalPortalMusic;
 
     [Header("Interfaz")]
     [Tooltip("Se reproduce al hacer clic en CUALQUIER boton de cualquier menu")]
@@ -43,4 +45,10 @@ public class AudioLibrary : ScriptableObject
     public AudioClip victory;
     public AudioClip gameOver;
     public AudioClip pause;
+
+    [Header("Nivel 4 - Jefe Final y Cierre")]
+    [Tooltip("Sonido cuando el Dragón Guardián del Nivel 4 empieza a atacar")]
+    public AudioClip dragonAttack;
+    [Tooltip("Sonido mientras Kai lanza los pulsos/bolas mágicas hacia los portales")]
+    public AudioClip portalPulse;
 }

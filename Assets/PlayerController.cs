@@ -579,7 +579,6 @@ public class PlayerController : MonoBehaviour
         // 2. Disparo frontal del proyectil MagicBolt (nace desde la mano de Kai sin saltarse enemigos)
         Vector3 spawnPos = transform.position + Vector3.right * (0.35f * facingDirection) + Vector3.up * 0.35f;
         MagicBolt.Spawn(spawnPos, facingDirection, attackDamage);
-        PlaySfx(Lib != null ? Lib.playerAttack : null);
 
         // Mueve el arma y brazo de Kai con animación de ataque tanto en tierra como en el aire
         spumPrefabs.PlayAnimation(PlayerState.ATTACK, 0);

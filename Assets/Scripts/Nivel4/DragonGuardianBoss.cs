@@ -255,6 +255,7 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
             lowHitOnly = false;
             SetBossTint(Color.white);
             UpdateBossUI("Fase 1: Aliento de Fuego — ¡Esquiva y golpea entre ráfagas!");
+            AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.dragonAttack : null);
 
             for (int v = 0; v < fireVolleys && !isDead; v++)
             {

@@ -44,7 +44,7 @@ public class MainMenuController : MonoBehaviour
         Bind(creditsBackButton, () => Show(mainPanel));
 
         if (continueButton != null)
-            continueButton.interactable = SaveSystem.HasSave;
+            continueButton.gameObject.SetActive(false);
 
         Time.timeScale = 1f;
         Show(mainPanel);
@@ -68,6 +68,7 @@ public class MainMenuController : MonoBehaviour
             return;
         }
 
+        GameManager.SkipStartMenuOnce = true;
         ScreenFader.FadeAndLoad(firstLevelScene, 1f);
     }
 

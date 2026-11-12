@@ -16,7 +16,8 @@ MonoBehaviour:
   level1Music: {fileID: 8300000, guid: a7562eaa159d641498049d05732a67eb, type: 3}
   level2Music: {fileID: 8300000, guid: 93393b6873d58465ca4324b07af606cd, type: 3}
   level3Music: {fileID: 8300000, guid: 29fd0e22256b7b44893e91567f2d10d6, type: 3}
-  level4Music: {fileID: 0}
+  level4Music: {fileID: 8300000, guid: 95ddaf5c5b175d34ea39e8876ba2f690, type: 3}
+  finalPortalMusic: {fileID: 0}
   buttonClick: {fileID: 8300000, guid: 52104bc3637e70540be457e0ba1ba9cd, type: 3}
   playerAttack: {fileID: 8300000, guid: ec831c2536d30374dbf768096ce241a9, type: 3}
   playerJump: {fileID: 8300000, guid: 632b1c41f6a368540970d173af4f782f, type: 3}
@@ -27,7 +28,9 @@ MonoBehaviour:
   heartPickup: {fileID: 8300000, guid: 21b688388a1acf64ab111d503c6fca28, type: 3}
   gemFragmentPickup: {fileID: 8300000, guid: b9739a23b7f93e246a00581de45ab838, type: 3}
   staffPickup: {fileID: 8300000, guid: 588b9ca6cab609c4eb13ead25d0024f3, type: 3}
-  magicBolt: {fileID: 8300000, guid: f5a3af329fd6304488efb92ea922491b, type: 3}
-  victory: {fileID: 0}
+  magicBolt: {fileID: 8300000, guid: ec831c2536d30374dbf768096ce241a9, type: 3}
+  victory: {fileID: 8300000, guid: baa900b0157907a499e9f5387ebd97e4, type: 3}
   gameOver: {fileID: 8300000, guid: 519d7a569f3186946bb0e064d3fc6924, type: 3}
   pause: {fileID: 0}
+  dragonAttack: {fileID: 0}
+  portalPulse: {fileID: 0}
