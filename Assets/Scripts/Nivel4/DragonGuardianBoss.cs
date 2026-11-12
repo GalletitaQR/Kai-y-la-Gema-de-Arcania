@@ -97,10 +97,14 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
     private float lastPlayerEngagedTime = -10f;
     private int crystalsSpawned = 0;
     private int crystalSpawnIndex = 0;
+    private Vector3 initialPosition;
     private readonly List<ArcanePowerCrystal> activeCrystals = new List<ArcanePowerCrystal>();
+    private static readonly List<DragonGuardianBoss> Instances = new List<DragonGuardianBoss>();
 
     void Awake()
     {
+        if (!Instances.Contains(this)) Instances.Add(this);
+        initialPosition = transform.position;
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         bossCollider = GetComponent<Collider2D>();
@@ -566,7 +570,78 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
         // Aparece la Gema de Arcania en la Sala del Trono
         if (gemObjectToActivate != null) gemObjectToActivate.SetActive(true);
 
-        Destroy(gameObject, 2.2f);
+        StartCoroutine(DeactivateAfterDeath(2.0f));
+    }
+
+    private void OnDestroy()
+    {
+        Instances.Remove(this);
+    }
+
+    private IEnumerator DeactivateAfterDeath(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        gameObject.SetActive(false);
+    }
+
+    /// <summary>Reactiva al Dragón Guardián y limpia proyectiles/cristales cuando Kai reaparece en un checkpoint.</summary>
+    public static void ResetAllForCheckpointRespawn()
+    {
+        BossProjectile[] projectiles = FindObjectsByType<BossProjectile>();
+        for (int i = 0; i < projectiles.Length; i++)
+        {
+            if (projectiles[i] != null) Destroy(projectiles[i].gameObject);
+        }
+
+        for (int i = 0; i < Instances.Count; i++)
+        {
+            if (Instances[i] != null) Instances[i].ResetEncounter();
+        }
+    }
+
+    public void ResetEncounter()
+    {
+        gameObject.SetActive(true);
+        StopAllCoroutines();
+
+        isDead = false;
+        combatStarted = false;
+        isVulnerable = false;
+        lowHitOnly = false;
+        currentPhase = BossPhase.WaitingForPlayer;
+        lastContactDamageTime = -10f;
+        lastPlayerEngagedTime = -10f;
+        crystalsSpawned = 0;
+        crystalSpawnIndex = 0;
+
+        foreach (ArcanePowerCrystal c in activeCrystals)
+            if (c != null) Destroy(c.gameObject);
+        activeCrystals.Clear();
+
+        transform.position = initialPosition;
+        FaceDirection(-1f);
+        SetBossTint(Color.white);
+
+        currentHealth = maxHealth;
+        if (bossCollider != null) bossCollider.enabled = true;
+        if (barraVidaOpcional != null)
+        {
+            barraVidaOpcional.gameObject.SetActive(true);
+            barraVidaOpcional.Actualizar(currentHealth, maxHealth);
+        }
+        if (bossHealthUI != null) bossHealthUI.SetVisible(false);
+
+        if (gemObjectToActivate != null)
+            gemObjectToActivate.SetActive(false);
+
+        if (animator != null)
+        {
+            animator.Rebind();
+            animator.Update(0f);
+        }
+
+        if (companionMage != null)
+            companionMage.ResetEncounter();
     }
 
     private IEnumerator HideBossUIAfterDelay()

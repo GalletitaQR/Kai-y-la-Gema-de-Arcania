@@ -713,6 +713,9 @@ public class PlayerController : MonoBehaviour
         spumPrefabs.PlayAnimation(currentState, 0);
         StartInvincibility(1.5f);
         MagicFX.Burst(transform.position + Vector3.up * 0.5f, new Color(0.35f, 0.85f, 1f, 0.9f), 18, 0.4f);
+
+        DragonGuardianBoss.ResetAllForCheckpointRespawn();
+        SkeletonMageCompanion.ResetAllForCheckpointRespawn();
     }
 
     void OnTriggerEnter2D(Collider2D other)

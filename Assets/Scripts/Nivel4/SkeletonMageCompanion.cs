@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -42,17 +43,21 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
     private float baseScaleX = 0.35f;
     private float castTimer = 0.9f;
     private float lastContactDamageTime = -10f;
+    private Vector3 initialPosition;
     private Vector3 basePerchPos;
     private int castCount = 0;
     private bool onRightPerch = true;
     private bool isCasting = false;
     private bool isDead = false;
     private bool combatActive = false;
+    private static readonly List<SkeletonMageCompanion> Instances = new List<SkeletonMageCompanion>();
 
     public bool IsDead => isDead;
 
     void Awake()
     {
+        if (!Instances.Contains(this)) Instances.Add(this);
+        initialPosition = transform.position;
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         mageCollider = GetComponent<Collider2D>();
@@ -310,7 +315,66 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
             animator.SetTrigger("DeathTrigger");
         }
 
-        Destroy(gameObject, 1.25f);
+        StartCoroutine(DeactivateAfterDeath(1.1f));
+    }
+
+    private void OnDestroy()
+    {
+        Instances.Remove(this);
+    }
+
+    private IEnumerator DeactivateAfterDeath(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        gameObject.SetActive(false);
+    }
+
+    /// <summary>Reactiva a todos los Mages Esqueleto cuando Kai reaparece en un checkpoint.</summary>
+    public static void ResetAllForCheckpointRespawn()
+    {
+        for (int i = 0; i < Instances.Count; i++)
+        {
+            if (Instances[i] != null) Instances[i].ResetEncounter();
+        }
+    }
+
+    public void ResetEncounter()
+    {
+        gameObject.SetActive(true);
+        StopAllCoroutines();
+
+        isDead = false;
+        combatActive = false;
+        isCasting = false;
+        onRightPerch = true;
+        castCount = 0;
+        castTimer = 0.9f;
+        lastContactDamageTime = -10f;
+
+        basePerchPos = initialPosition;
+        transform.position = initialPosition;
+        FaceDirection(-1f);
+
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            rb.gravityScale = 0f;
+            rb.linearVelocity = Vector2.zero;
+        }
+        if (mageCollider != null) mageCollider.enabled = true;
+
+        currentHealth = maxHealth;
+        if (barraVida != null)
+        {
+            barraVida.gameObject.SetActive(true);
+            barraVida.Actualizar(currentHealth, maxHealth);
+        }
+
+        if (animator != null)
+        {
+            animator.Rebind();
+            animator.Update(0f);
+        }
     }
 }
 
