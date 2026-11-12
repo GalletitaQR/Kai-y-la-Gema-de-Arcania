@@ -8,6 +8,7 @@ public class MagicBolt : MonoBehaviour
     private const int GroundLayer = 6;
 
     private int damage;
+    private bool hasHit;
 
     public static void Spawn(Vector3 position, float direction, int damage)
     {
@@ -41,6 +42,7 @@ public class MagicBolt : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (hasHit) return;
         if (other.GetComponentInParent<PlayerController>() != null)
             return;
 
@@ -50,6 +52,7 @@ public class MagicBolt : MonoBehaviour
 
         if (enemy != null)
         {
+            hasHit = true;
             enemy.TakeDamage(damage);
             MagicFX.Burst(transform.position, new Color(0.7f, 0.35f, 1f, 1f), 20, 0.2f);
             Destroy(gameObject);

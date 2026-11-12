@@ -129,7 +129,6 @@ public class ArcaniaFinalEnding : MonoBehaviour
         player.StopHorizontalMotion();
         player.ForceAnimation(PlayerState.IDLE);
         player.SetCutsceneWeapon(true);
-        player.AddDamageBonus(25);
         player.PlayAbsorbFeedback(gemGlowColor);
 
         AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.gemFragmentPickup : null);

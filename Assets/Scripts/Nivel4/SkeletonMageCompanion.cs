@@ -27,8 +27,8 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
     public int castsBeforeTeleport = 2;
 
     [Header("Vida, Contacto y Puntaje")]
-    public int maxHealth = 220;
-    public int currentHealth = 220;
+    public int maxHealth = 260;
+    public int currentHealth = 260;
     public int contactDamage = 10;
     public int scoreValue = 80;
     public BarraVida barraVida;
@@ -75,22 +75,31 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
         sg.sortingLayerName = "Enemies";
         sg.sortingOrder = 15;
 
-        int minOrder = CollectBodyRenderers();
+        CollectBodyRenderers();
         EnsureSolidVisibility();
 
-        // Aura suave detrás de todas las capas del esqueleto para que nunca lo vuelva translúcido
-        SpriteRenderer glow = MagicFX.AddGlow(transform, new Color(spellColor.r, spellColor.g, spellColor.b, 0.20f), 1.65f);
-        if (glow != null)
-        {
-            glow.sortingLayerID = 0;
-            glow.sortingOrder = minOrder - 10;
-        }
-        MagicFX.AddSparkles(transform, spellColor, 0.55f, 8f);
+        MagicFX.AddSparkles(transform, spellColor, 0.45f, 6f);
 
         baseScaleX = Mathf.Abs(transform.localScale.x);
-        if (baseScaleX < 0.01f) baseScaleX = 0.50f;
+        if (baseScaleX < 0.54f)
+        {
+            baseScaleX = 0.55f;
+            float sign = transform.localScale.x < 0f ? -1f : 1f;
+            transform.localScale = new Vector3(sign * baseScaleX, baseScaleX, 1f);
+        }
+
+        if (perchRight.y > 0.7f) perchRight.y = 0.55f;
+        if (perchLeft.y > 0.7f) perchLeft.y = 0.55f;
+        if (transform.position.y > 0.7f)
+        {
+            Vector3 p = transform.position;
+            p.y = 0.55f;
+            transform.position = p;
+            initialPosition = p;
+        }
         basePerchPos = transform.position;
 
+        if (maxHealth < 260) maxHealth = 260;
         currentHealth = maxHealth;
         if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
     }

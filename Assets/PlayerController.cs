@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Gema de fuerza")]
     public TextMeshProUGUI textoDano;
-    public int danoPorGema = 4;
+    public int danoPorGema = 3;
     private int bonusDano = 0;
 
     [Header("Ground Check")]
@@ -454,9 +454,11 @@ public class PlayerController : MonoBehaviour
 
             if (enemigo != null && damaged.Add(enemigo))
             {
-                enemigo.TakeDamage(attackDamage);
-
-                
+                if (verticalSwordHitbox == null || !verticalSwordHitbox.WasDamagedThisSwing(enemigo))
+                {
+                    enemigo.TakeDamage(attackDamage);
+                    if (verticalSwordHitbox != null) verticalSwordHitbox.MarkAlreadyDamaged(enemigo);
+                }
             }
         }
 
@@ -471,7 +473,11 @@ public class PlayerController : MonoBehaviour
 
             if (enemigo != null && damaged.Add(enemigo))
             {
-                enemigo.TakeDamage(attackDamage);
+                if (verticalSwordHitbox == null || !verticalSwordHitbox.WasDamagedThisSwing(enemigo))
+                {
+                    enemigo.TakeDamage(attackDamage);
+                    if (verticalSwordHitbox != null) verticalSwordHitbox.MarkAlreadyDamaged(enemigo);
+                }
             }
         }
 
@@ -524,7 +530,11 @@ public class PlayerController : MonoBehaviour
 
             if (enemigo != null && damaged.Add(enemigo))
             {
-                enemigo.TakeDamage(attackDamage);
+                if (horizontalSwordHitbox == null || !horizontalSwordHitbox.WasDamagedThisSwing(enemigo))
+                {
+                    enemigo.TakeDamage(attackDamage);
+                    if (horizontalSwordHitbox != null) horizontalSwordHitbox.MarkAlreadyDamaged(enemigo);
+                }
                 Rigidbody2D erb = col.attachedRigidbody;
                 if (erb != null && erb.bodyType == RigidbodyType2D.Dynamic)
                 {
@@ -562,7 +572,7 @@ public class PlayerController : MonoBehaviour
 
             if (enemigo != null && hitNearby.Add(enemigo))
             {
-                enemigo.TakeDamage(attackDamage);
+                enemigo.TakeDamage(Mathf.Max(2, attackDamage / 2));
             }
         }
 

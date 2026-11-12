@@ -12,8 +12,8 @@ public class GhostSkeletonEnemy : MonoBehaviour, IEnemigo
     public float ambushRange = 5.5f;
     public float chaseRange = 8.5f;
     public float floatSpeed = 2.6f;
-    public float hiddenAlpha = 0.14f;
-    public float revealedAlpha = 0.95f;
+    public float hiddenAlpha = 0.75f;
+    public float revealedAlpha = 1f;
 
     [Header("Ataque")]
     public float attackRange = 1.35f;
@@ -22,8 +22,8 @@ public class GhostSkeletonEnemy : MonoBehaviour, IEnemigo
     public float attackCooldown = 1.5f;
 
     [Header("Vida y Puntaje")]
-    public int maxHealth = 50;
-    public int currentHealth = 50;
+    public int maxHealth = 75;
+    public int currentHealth = 75;
     public int scoreValue = 40;
     public BarraVida barraVida;
 

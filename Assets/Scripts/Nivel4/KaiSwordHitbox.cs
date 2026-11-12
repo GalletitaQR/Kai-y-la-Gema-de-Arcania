@@ -61,6 +61,16 @@ public class KaiSwordHitbox : MonoBehaviour
         }
     }
 
+    public bool WasDamagedThisSwing(IEnemigo enemigo)
+    {
+        return enemigo != null && damagedThisSwing.Contains(enemigo);
+    }
+
+    public void MarkAlreadyDamaged(IEnemigo enemigo)
+    {
+        if (enemigo != null) damagedThisSwing.Add(enemigo);
+    }
+
     /// <summary>
     /// Desactiva la hitbox temporal al terminar el golpe.
     /// </summary>

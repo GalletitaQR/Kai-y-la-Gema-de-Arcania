@@ -57,14 +57,14 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
     [Header("Fase 3: Momento Vulnerable")]
     public float vulnerableDuration = 4.5f;
     public float vulnerableDurationWhenMageDead = 6.0f;
-    [Tooltip("Daño recibido fuera del momento vulnerable (0.35 = 35%).")]
-    public float armoredDamageMultiplier = 0.35f;
-    [Tooltip("Daño recibido durante el momento vulnerable (1.0 = 100%).")]
-    public float vulnerableDamageMultiplier = 1.0f;
+    [Tooltip("Daño recibido fuera del momento vulnerable (0.25 = 25%).")]
+    public float armoredDamageMultiplier = 0.25f;
+    [Tooltip("Daño recibido durante el momento vulnerable (0.85 = 85%).")]
+    public float vulnerableDamageMultiplier = 0.85f;
 
     [Header("Cristales de Poder Arcano (aumentan el daño de Kai)")]
     public Sprite powerCrystalSprite;
-    public int crystalDamageBonus = 5;
+    public int crystalDamageBonus = 3;
     public int maxActiveCrystals = 2;
     public int maxTotalCrystals = 4;
     public Vector3[] crystalSpawnPoints = new Vector3[]
@@ -75,8 +75,8 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
     };
 
     [Header("Vida y Daño")]
-    public int maxHealth = 360;
-    public int currentHealth = 360;
+    public int maxHealth = 480;
+    public int currentHealth = 480;
     public int contactDamage = 10;
     public int scoreValue = 500;
 
@@ -123,6 +123,13 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
 
         baseScaleX = Mathf.Abs(transform.localScale.x);
         if (baseScaleX < 0.01f) baseScaleX = 0.38f;
+
+        // Asegurar balance mínimo en escena incluso si el editor no recargó el archivo .unity
+        maxHealth = Mathf.Max(maxHealth, 480);
+        armoredDamageMultiplier = Mathf.Min(armoredDamageMultiplier, 0.25f);
+        vulnerableDamageMultiplier = Mathf.Min(vulnerableDamageMultiplier, 0.85f);
+        crystalDamageBonus = Mathf.Min(crystalDamageBonus, 3);
+        maxTotalCrystals = Mathf.Min(maxTotalCrystals, 4);
 
         currentHealth = maxHealth;
         if (barraVidaOpcional != null) barraVidaOpcional.Actualizar(currentHealth, maxHealth);
@@ -510,7 +517,7 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
         lastPlayerEngagedTime = Time.time;
 
         float mult = isVulnerable ? vulnerableDamageMultiplier : armoredDamageMultiplier;
-        int finalDamage = Mathf.Max(3, Mathf.RoundToInt(amount * mult));
+        int finalDamage = Mathf.Max(2, Mathf.RoundToInt(amount * mult));
         currentHealth = Mathf.Max(0, currentHealth - finalDamage);
 
         if (barraVidaOpcional != null) barraVidaOpcional.Actualizar(currentHealth, maxHealth);

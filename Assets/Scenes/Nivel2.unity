@@ -13125,7 +13125,7 @@ MonoBehaviour:
   moveSpeed: 4.6
   jumpForce: 8.5
   textoDano: {fileID: 1460760593}
-  danoPorGema: 4
+  danoPorGema: 3
   groundCheck: {fileID: 786311551}
   groundCheckRadius: 0.25
   groundLayer:

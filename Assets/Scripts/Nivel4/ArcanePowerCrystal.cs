@@ -9,7 +9,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class ArcanePowerCrystal : MonoBehaviour
 {
-    public int damageBonus = 5;
+    public int damageBonus = 3;
     public int healAmount = 8;
     public Color glowColor = new Color(1f, 0.62f, 0.15f, 0.9f);
     public float lifeTime = 14f;
