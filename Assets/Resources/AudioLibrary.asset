@@ -31,6 +31,6 @@ MonoBehaviour:
   magicBolt: {fileID: 8300000, guid: ec831c2536d30374dbf768096ce241a9, type: 3}
   victory: {fileID: 8300000, guid: baa900b0157907a499e9f5387ebd97e4, type: 3}
   gameOver: {fileID: 8300000, guid: 519d7a569f3186946bb0e064d3fc6924, type: 3}
-  pause: {fileID: 0}
-  dragonAttack: {fileID: 0}
+  pause: {fileID: 8300000, guid: 0ea9f9effbc4049f8b137f84c7b1d594, type: 3}
+  dragonAttack: {fileID: 8300000, guid: 4ff94a45a13d85f41ae639d89c4f8892, type: 3}
   portalPulse: {fileID: 0}
