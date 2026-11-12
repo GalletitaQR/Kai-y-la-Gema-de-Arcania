@@ -17,7 +17,7 @@ public class GemFragment : MonoBehaviour
     public float messageSeconds = 4f;
 
     [Header("Recompensa")]
-    public int damageBonus = 10;
+    public int damageBonus = 4;
     public int scoreValue = 50;
 
     [Header("Efecto de luz")]

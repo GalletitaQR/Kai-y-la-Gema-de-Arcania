@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Gema de fuerza")]
     public TextMeshProUGUI textoDano;
-    public int danoPorGema = 10;
+    public int danoPorGema = 4;
     private int bonusDano = 0;
 
     [Header("Ground Check")]

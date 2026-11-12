@@ -57,16 +57,16 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
     [Header("Fase 3: Momento Vulnerable")]
     public float vulnerableDuration = 4.5f;
     public float vulnerableDurationWhenMageDead = 6.0f;
-    [Tooltip("Daño recibido fuera del momento vulnerable (0.5 = 50%).")]
-    public float armoredDamageMultiplier = 0.2f;
-    [Tooltip("Daño recibido durante el momento vulnerable (1.5 = 150%).")]
-    public float vulnerableDamageMultiplier = 0.5f;
+    [Tooltip("Daño recibido fuera del momento vulnerable (0.35 = 35%).")]
+    public float armoredDamageMultiplier = 0.35f;
+    [Tooltip("Daño recibido durante el momento vulnerable (1.0 = 100%).")]
+    public float vulnerableDamageMultiplier = 1.0f;
 
     [Header("Cristales de Poder Arcano (aumentan el daño de Kai)")]
     public Sprite powerCrystalSprite;
-    public int crystalDamageBonus = 10;
+    public int crystalDamageBonus = 5;
     public int maxActiveCrystals = 2;
-    public int maxTotalCrystals = 6;
+    public int maxTotalCrystals = 4;
     public Vector3[] crystalSpawnPoints = new Vector3[]
     {
         new Vector3(120.5f, -0.55f, 0f),
@@ -75,8 +75,8 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
     };
 
     [Header("Vida y Daño")]
-    public int maxHealth = 450;
-    public int currentHealth = 300;
+    public int maxHealth = 360;
+    public int currentHealth = 360;
     public int contactDamage = 10;
     public int scoreValue = 500;
 
@@ -510,7 +510,7 @@ public class DragonGuardianBoss : MonoBehaviour, IEnemigo
         lastPlayerEngagedTime = Time.time;
 
         float mult = isVulnerable ? vulnerableDamageMultiplier : armoredDamageMultiplier;
-        int finalDamage = Mathf.Max(5, Mathf.RoundToInt(amount * mult));
+        int finalDamage = Mathf.Max(3, Mathf.RoundToInt(amount * mult));
         currentHealth = Mathf.Max(0, currentHealth - finalDamage);
 
         if (barraVidaOpcional != null) barraVidaOpcional.Actualizar(currentHealth, maxHealth);

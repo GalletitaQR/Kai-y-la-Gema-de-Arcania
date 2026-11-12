@@ -27,8 +27,8 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
     public int castsBeforeTeleport = 2;
 
     [Header("Vida, Contacto y Puntaje")]
-    public int maxHealth = 120;
-    public int currentHealth = 120;
+    public int maxHealth = 220;
+    public int currentHealth = 220;
     public int contactDamage = 10;
     public int scoreValue = 80;
     public BarraVida barraVida;
@@ -39,8 +39,9 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
     private Animator animator;
     private Rigidbody2D rb;
     private Collider2D mageCollider;
+    private readonly List<SpriteRenderer> bodyRenderers = new List<SpriteRenderer>();
 
-    private float baseScaleX = 0.35f;
+    private float baseScaleX = 0.50f;
     private float castTimer = 0.9f;
     private float lastContactDamageTime = -10f;
     private Vector3 initialPosition;
@@ -72,17 +73,64 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
         SortingGroup sg = GetComponent<SortingGroup>();
         if (sg == null) sg = gameObject.AddComponent<SortingGroup>();
         sg.sortingLayerName = "Enemies";
-        sg.sortingOrder = 10;
+        sg.sortingOrder = 15;
 
-        MagicFX.AddGlow(transform, new Color(spellColor.r, spellColor.g, spellColor.b, 0.45f), 2.5f);
-        MagicFX.AddSparkles(transform, spellColor, 0.7f, 12f);
+        int minOrder = CollectBodyRenderers();
+        EnsureSolidVisibility();
+
+        // Aura suave detrás de todas las capas del esqueleto para que nunca lo vuelva translúcido
+        SpriteRenderer glow = MagicFX.AddGlow(transform, new Color(spellColor.r, spellColor.g, spellColor.b, 0.20f), 1.65f);
+        if (glow != null)
+        {
+            glow.sortingLayerID = 0;
+            glow.sortingOrder = minOrder - 10;
+        }
+        MagicFX.AddSparkles(transform, spellColor, 0.55f, 8f);
 
         baseScaleX = Mathf.Abs(transform.localScale.x);
-        if (baseScaleX < 0.01f) baseScaleX = 0.35f;
+        if (baseScaleX < 0.01f) baseScaleX = 0.50f;
         basePerchPos = transform.position;
 
         currentHealth = maxHealth;
         if (barraVida != null) barraVida.Actualizar(currentHealth, maxHealth);
+    }
+
+    private int CollectBodyRenderers()
+    {
+        bodyRenderers.Clear();
+        int minOrder = 0;
+        foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (sr == null || sr.gameObject == gameObject) continue;
+            string n = sr.gameObject.name;
+            if (n == "MagicGlow" || n == "MagicSparkles" || n == "Rune" || n == "LightSpell" || n == "Light")
+                continue;
+            bodyRenderers.Add(sr);
+            if (sr.sortingOrder < minOrder) minOrder = sr.sortingOrder;
+        }
+        return minOrder;
+    }
+
+    private void EnsureSolidVisibility()
+    {
+        for (int i = 0; i < bodyRenderers.Count; i++)
+        {
+            SpriteRenderer sr = bodyRenderers[i];
+            if (sr == null) continue;
+            Color c = sr.color;
+            if (c.a < 0.99f || c.r < 0.99f || c.g < 0.99f || c.b < 0.99f)
+            {
+                sr.color = Color.white;
+            }
+        }
+    }
+
+    void LateUpdate()
+    {
+        if (!isDead)
+        {
+            EnsureSolidVisibility();
+        }
     }
 
     public void ActivateCombat()
@@ -375,6 +423,8 @@ public class SkeletonMageCompanion : MonoBehaviour, IEnemigo
             animator.Rebind();
             animator.Update(0f);
         }
+
+        EnsureSolidVisibility();
     }
 }
 
