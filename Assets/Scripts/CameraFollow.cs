@@ -71,11 +71,18 @@ public class CameraFollow : MonoBehaviour
         transform.position = smoothedPosition;
     }
 
+    public float CurrentOrthoSize => cam != null ? cam.orthographicSize : bossRoomOrthoSize;
+
     public void LockToBossArena(Vector2 arenaCenter, float orthoSize = 6.5f)
     {
         bossRoomCameraPos = arenaCenter;
         if (orthoSize > 0f) bossRoomOrthoSize = orthoSize;
         isLockedInBossRoom = true;
+    }
+
+    public void FocusCutscene(Vector2 worldCenter, float orthoSize)
+    {
+        LockToBossArena(worldCenter, orthoSize);
     }
 
     public void UnlockBossArena()

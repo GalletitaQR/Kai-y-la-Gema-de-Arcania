@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,11 +26,25 @@ public class ArcaniaFinalEnding : MonoBehaviour
 
     [Header("Mensajes de Historia")]
     [TextArea]
-    public string pickupMessage = "¡Has recuperado la Gema de Arcanía! Canalizando su poder para sellar el Portal...";
+    public string pickupMessage = "¡Has obtenido la Gema de Arcanía! Su poder despierta en tu interior...";
     [TextArea]
-    public string extendingPortalMessage = "¡Cuidado! ¡Aunque el altar cayó, el portal principal sobre Arcanía se está extendiendo!";
+    public string transformationMessage = "¡Te has convertido en el nuevo Mago del mundo de Arcanía!";
     [TextArea]
-    public string closingMessage = "¡El Portal ha sido cerrado para siempre! Kai se ha convertido en el nuevo Mago de Arcanía.";
+    public string altarIntroMessage = "El portal estuvo a punto de infectar todo el reino. Gracias a la Gema que obtuviste, ¡ahora se puede cerrar!";
+    [TextArea]
+    public string extendingPortalMessage = "¡Has salvado al reino! El portal se cerrará gracias a tu poder como Mago de Arcanía.";
+    [TextArea]
+    public string closingMessage = "¡El Portal ha sido cerrado para siempre! Arcanía vuelve a brillar en paz.";
+
+    [Header("Atuendo de Mago para Kai (Solo Ropa)")]
+    public Sprite mageClothBody;
+    public Sprite mageClothLeft;
+    public Sprite mageClothRight;
+    public Sprite mageArmorBody;
+    public Sprite mageArmorLeft;
+    public Sprite mageArmorRight;
+    public Sprite magePantLeft;
+    public Sprite magePantRight;
 
     [Header("Cinemática Final del Portal en Arcanía")]
     public Sprite infectedWorldSprite;
@@ -192,8 +207,41 @@ public class ArcaniaFinalEnding : MonoBehaviour
         player.StopHorizontalMotion();
         float dirToPortal = portalPos.x >= player.transform.position.x ? 1f : -1f;
         player.FaceDirection(dirToPortal);
+        player.SetCutsceneWeapon(true);
         player.ForceAnimation(PlayerState.IDLE);
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.20f);
+
+        // 1.5 Acercar cámara a Kai, hacerlo girar cambiando solo su ropa al atuendo de Mago de Arcanía
+        EnsureCinematicSprites();
+        CameraFollow camFollow = Camera.main != null ? Camera.main.GetComponent<CameraFollow>() : FindAnyObjectByType<CameraFollow>();
+        if (camFollow != null)
+        {
+            Vector2 closeTarget = (Vector2)player.transform.position + new Vector2(0f, 0.72f);
+            camFollow.FocusCutscene(closeTarget, 3.35f);
+            yield return new WaitForSeconds(0.55f);
+        }
+
+        yield return StartCoroutine(PlayKaiMageTransformationRoutine(player, dirToPortal));
+
+        if (MessageBanner.Instance != null && !string.IsNullOrEmpty(transformationMessage))
+        {
+            MessageBanner.Instance.Show(transformationMessage, 4.0f);
+        }
+        yield return new WaitForSeconds(2.05f);
+
+        // Reencuadrar cámara hacia Kai y el altar del portal antes de cerrarlo
+        if (camFollow != null)
+        {
+            Vector2 altarFocus = Vector2.Lerp((Vector2)player.transform.position, (Vector2)portalPos, 0.45f) + new Vector2(0f, 0.65f);
+            camFollow.FocusCutscene(altarFocus, 5.4f);
+            yield return new WaitForSeconds(0.45f);
+        }
+
+        if (MessageBanner.Instance != null && !string.IsNullOrEmpty(altarIntroMessage))
+        {
+            MessageBanner.Instance.Show(altarIntroMessage, 4.2f);
+            yield return new WaitForSeconds(2.35f);
+        }
 
         // 2. Kai canaliza la Gema de Arcania y lanza 3 pulsos mágicos hacia el portal
         for (int i = 0; i < 3; i++)
@@ -242,15 +290,15 @@ public class ArcaniaFinalEnding : MonoBehaviour
 
         yield return new WaitForSeconds(0.45f);
 
-        // 4. Aviso de que el portal principal sobre Arcanía se está extendiendo y secuencia ilustrada de cierre
+        // 4. Mensaje de victoria optimista y secuencia ilustrada donde Kai lanza pulsos para sellar el portal final
         if (MessageBanner.Instance != null && !string.IsNullOrEmpty(extendingPortalMessage))
         {
-            MessageBanner.Instance.Show(extendingPortalMessage, 4.5f);
+            MessageBanner.Instance.Show(extendingPortalMessage, 5.2f);
         }
 
-        yield return new WaitForSeconds(1.35f);
+        yield return new WaitForSeconds(1.25f);
 
-        yield return StartCoroutine(PlayFullscreenPortalSealSequence());
+        yield return StartCoroutine(PlayFullscreenPortalSealSequence(player));
 
         // 5. Mensaje de cierre sobre Arcanía restaurada
         if (MessageBanner.Instance != null)
@@ -258,7 +306,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
             MessageBanner.Instance.Show(closingMessage, 5.5f);
         }
 
-        yield return new WaitForSeconds(2.6f);
+        yield return new WaitForSeconds(2.4f);
 
         // 6. Personalizar y mostrar la Pantalla Final con opción de volver al menú
         CustomizeFinalVictoryScreen();
@@ -267,6 +315,66 @@ public class ArcaniaFinalEnding : MonoBehaviour
         {
             GameManager.Instance.CompleteLevel();
         }
+    }
+
+    private IEnumerator PlayKaiMageTransformationRoutine(PlayerController player, float finalFacing)
+    {
+        Transform unitRoot = player.FindUnitRoot();
+        Vector3 origLocalPos = unitRoot.localPosition;
+        Quaternion origLocalRot = unitRoot.localRotation;
+
+        Vector3 centerPos = player.transform.position + new Vector3(0f, 0.55f, 0f);
+        MagicFX.SpawnShockwave(centerPos, new Color(0.75f, 0.35f, 1f, 0.9f), 2.5f, 0.45f);
+        AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.magicBolt : null);
+
+        bool outfitSwapped = false;
+        const float duration = 1.85f;
+        const int spinTurns = 4;
+        float elapsed = 0f;
+        float sparkleTimer = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float ease = Mathf.SmoothStep(0f, 1f, t);
+
+            float angleY = ease * 360f * spinTurns;
+            float liftY = Mathf.Sin(t * Mathf.PI) * 0.32f;
+
+            unitRoot.localRotation = Quaternion.Euler(0f, angleY, 0f);
+            unitRoot.localPosition = origLocalPos + new Vector3(0f, liftY, 0f);
+
+            sparkleTimer -= Time.deltaTime;
+            if (sparkleTimer <= 0f)
+            {
+                sparkleTimer = 0.22f;
+                Vector3 fxPos = player.transform.position + new Vector3(0f, 0.55f + liftY, 0f);
+                MagicFX.Burst(fxPos, Color.Lerp(portalColor, gemGlowColor, t), 14, 0.35f);
+            }
+
+            if (!outfitSwapped && t >= 0.48f)
+            {
+                outfitSwapped = true;
+                player.TransformToMageOutfit(
+                    mageClothBody, mageClothLeft, mageClothRight,
+                    mageArmorBody, mageArmorLeft, mageArmorRight,
+                    magePantLeft, magePantRight);
+
+                Vector3 burstPos = player.transform.position + new Vector3(0f, 0.55f + liftY, 0f);
+                MagicFX.SpawnShockwave(burstPos, new Color(1f, 0.92f, 0.45f, 0.95f), 3.4f, 0.50f);
+                MagicFX.Burst(burstPos, new Color(1f, 0.92f, 0.45f, 1f), 42, 0.55f);
+                MagicFX.Burst(burstPos, portalColor, 34, 0.50f);
+                AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.gemFragmentPickup : null);
+            }
+
+            yield return null;
+        }
+
+        unitRoot.localRotation = origLocalRot;
+        unitRoot.localPosition = origLocalPos;
+        player.FaceDirection(finalFacing);
+        player.ForceAnimation(PlayerState.IDLE);
     }
 
     private void OnValidate()
@@ -283,6 +391,19 @@ public class ArcaniaFinalEnding : MonoBehaviour
             expandingPortalSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/porfal_sin_fondo.png");
         if (healedWorldSprite == null)
             healedWorldSprite = LoadSpriteAsset("Assets/Coin_Gems/assets/assets/fondomenu.png");
+
+        const string clothPath = "Assets/Sprites/KaiMageRobe_Cloth.png";
+        const string armorPath = "Assets/Sprites/KaiMageRobe_Armor.png";
+        const string pantPath = "Assets/SPUM/Resources/Addons/Ver300/0_Unit/0_Sprite/5_Pant/New_Pant_12.png";
+
+        if (mageClothBody == null) mageClothBody = LoadSubSpriteAsset(clothPath, "Body");
+        if (mageClothLeft == null) mageClothLeft = LoadSubSpriteAsset(clothPath, "Left");
+        if (mageClothRight == null) mageClothRight = LoadSubSpriteAsset(clothPath, "Right");
+        if (mageArmorBody == null) mageArmorBody = LoadSubSpriteAsset(armorPath, "Body");
+        if (mageArmorLeft == null) mageArmorLeft = LoadSubSpriteAsset(armorPath, "Left");
+        if (mageArmorRight == null) mageArmorRight = LoadSubSpriteAsset(armorPath, "Right");
+        if (magePantLeft == null) magePantLeft = LoadSubSpriteAsset(pantPath, "Left");
+        if (magePantRight == null) magePantRight = LoadSubSpriteAsset(pantPath, "Right");
 #endif
     }
 
@@ -300,9 +421,20 @@ public class ArcaniaFinalEnding : MonoBehaviour
         }
         return null;
     }
+
+    private static Sprite LoadSubSpriteAsset(string assetPath, string subName)
+    {
+        Object[] all = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+        foreach (Object obj in all)
+        {
+            if (obj is Sprite sprite && sprite.name == subName)
+                return sprite;
+        }
+        return null;
+    }
 #endif
 
-    private IEnumerator PlayFullscreenPortalSealSequence()
+    private IEnumerator PlayFullscreenPortalSealSequence(PlayerController player)
     {
         EnsureCinematicSprites();
 
@@ -393,10 +525,24 @@ public class ArcaniaFinalEnding : MonoBehaviour
         glowImg.color = new Color(portalColor.r, portalColor.g, portalColor.b, 0f);
         glowImg.raycastTarget = false;
 
+        // 4.5 Kai con su nuevo atuendo de Mago de Arcanía en el risco derecho mirando al portal
+        RectTransform kaiUiRect = null;
+        Image staffGlowImg = null;
+        if (player != null)
+        {
+            player.FaceDirection(-1f);
+            player.SetCutsceneWeapon(true);
+            player.ForceAnimation(PlayerState.IDLE);
+            yield return null;
+            BuildUiKaiPortrait(worldRect, player, out kaiUiRect, out staffGlowImg);
+        }
+
+        Canvas.ForceUpdateCanvases();
+
         // 5. Destello final de pantalla completa
         Image flashImg = CreateFullscreenImage("FlashOverlay", rootRect, null, new Color(1f, 0.95f, 0.72f, 0f));
 
-        // Fase A: Fundido de entrada hacia Arcanía infectada
+        // Fase A: Fundido de entrada hacia la escena del portal
         float fadeInDuration = 0.55f;
         float elapsed = 0f;
         while (elapsed < fadeInDuration)
@@ -407,59 +553,104 @@ public class ArcaniaFinalEnding : MonoBehaviour
         }
         rootGroup.alpha = 1f;
 
-        // Fase B: El portal se expande y late amenazantemente sobre el reino
-        float threatDuration = 1.15f;
+        // Fase B: El portal vibra mientras Kai carga energía en su bastón
+        float chargeDuration = 1.05f;
         elapsed = 0f;
-        while (elapsed < threatDuration)
+        while (elapsed < chargeDuration)
         {
             elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / threatDuration);
+            float t = Mathf.Clamp01(elapsed / chargeDuration);
             if (expandingPortalRect != null)
             {
-                float scale = Mathf.Lerp(0.96f, 1.07f, t) + Mathf.Sin(t * Mathf.PI * 3f) * 0.018f;
+                float scale = Mathf.Lerp(0.96f, 1.06f, t) + Mathf.Sin(t * Mathf.PI * 3f) * 0.016f;
                 expandingPortalRect.localScale = new Vector3(scale, scale, 1f);
             }
-            glowImg.color = new Color(portalColor.r, portalColor.g, portalColor.b, Mathf.Sin(t * Mathf.PI) * 0.42f);
-            glowRect.localScale = Vector3.one * Mathf.Lerp(0.85f, 1.25f, t);
-            worldRect.anchoredPosition = Random.insideUnitCircle * 4.5f;
+            if (staffGlowImg != null)
+            {
+                staffGlowImg.color = new Color(gemGlowColor.r, gemGlowColor.g, gemGlowColor.b, 0.35f + 0.55f * Mathf.Sin(t * Mathf.PI * 2f));
+                staffGlowImg.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.55f, 1.25f, t);
+            }
+            if (kaiUiRect != null)
+            {
+                kaiUiRect.anchoredPosition = new Vector2(0f, Mathf.Sin(t * Mathf.PI * 2f) * 6f);
+            }
+            glowImg.color = new Color(portalColor.r, portalColor.g, portalColor.b, Mathf.Sin(t * Mathf.PI) * 0.38f);
+            glowRect.localScale = Vector3.one * Mathf.Lerp(0.85f, 1.20f, t);
+            worldRect.anchoredPosition = Random.insideUnitCircle * 3.5f;
             yield return null;
         }
         worldRect.anchoredPosition = Vector2.zero;
+        if (kaiUiRect != null) kaiUiRect.anchoredPosition = Vector2.zero;
 
-        // Fase C: Tres descargas de la Gema de Arcanía impactan el portal principal
+        // Fase C: Kai lanza 3 pulsos mágicos desde su bastón hacia el portal principal
         for (int i = 0; i < 3; i++)
         {
             AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.playerAttack : null);
             AudioManager.PlaySfx(AudioManager.Lib != null ? AudioManager.Lib.magicBolt : null);
 
             Color pulseTint = Color.Lerp(gemGlowColor, new Color(1f, 0.94f, 0.55f, 1f), (i + 1) / 3f);
-            float pulseDuration = 0.55f;
+
+            if (kaiUiRect != null)
+            {
+                kaiUiRect.anchoredPosition = new Vector2(-18f, 10f);
+                kaiUiRect.localRotation = Quaternion.Euler(0f, 0f, 6f);
+            }
+            if (staffGlowImg != null)
+            {
+                staffGlowImg.color = new Color(pulseTint.r, pulseTint.g, pulseTint.b, 1f);
+                staffGlowImg.rectTransform.localScale = Vector3.one * 1.45f;
+            }
+
+            Vector2 startLocal = staffGlowImg != null
+                ? (Vector2)worldRect.InverseTransformPoint(staffGlowImg.rectTransform.position)
+                : new Vector2(410f, -150f);
+            Vector2 endLocal = (Vector2)worldRect.InverseTransformPoint(glowRect.position);
+
+            yield return StartCoroutine(LaunchUiArcanePulse(worldRect, startLocal, endLocal, pulseTint));
+
+            if (kaiUiRect != null)
+            {
+                kaiUiRect.anchoredPosition = Vector2.zero;
+                kaiUiRect.localRotation = Quaternion.identity;
+            }
+            if (staffGlowImg != null)
+            {
+                staffGlowImg.color = new Color(gemGlowColor.r, gemGlowColor.g, gemGlowColor.b, 0.45f);
+                staffGlowImg.rectTransform.localScale = Vector3.one * 0.85f;
+            }
+
+            StartCoroutine(SpawnUiShockwave(worldRect, endLocal, pulseTint));
+
+            float impactDuration = 0.36f;
             elapsed = 0f;
-            while (elapsed < pulseDuration)
+            while (elapsed < impactDuration)
             {
                 elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / pulseDuration);
+                float t = Mathf.Clamp01(elapsed / impactDuration);
                 float wave = Mathf.Sin(t * Mathf.PI);
 
-                glowImg.color = new Color(pulseTint.r, pulseTint.g, pulseTint.b, wave * 0.85f);
-                glowRect.localScale = Vector3.one * Mathf.Lerp(0.45f, 1.85f, t);
+                glowImg.color = new Color(pulseTint.r, pulseTint.g, pulseTint.b, wave * 0.90f);
+                glowRect.localScale = Vector3.one * Mathf.Lerp(0.50f, 1.90f, t);
 
                 if (expandingPortalImg != null)
                 {
-                    expandingPortalImg.color = Color.Lerp(Color.white, new Color(0.75f, 1f, 1f, 1f), wave * 0.65f);
-                    float recoil = Mathf.Lerp(1.06f, 0.98f, t) - wave * 0.04f;
+                    expandingPortalImg.color = Color.Lerp(Color.white, new Color(0.75f, 1f, 1f, 1f), wave * 0.7f);
+                    float recoil = Mathf.Lerp(1.05f, 0.97f, t) - wave * 0.045f;
                     expandingPortalRect.localScale = new Vector3(recoil, recoil, 1f);
                 }
 
-                worldRect.anchoredPosition = Random.insideUnitCircle * (6.5f * (1f - t));
+                worldRect.anchoredPosition = Random.insideUnitCircle * (7.5f * (1f - t));
                 yield return null;
             }
 
             if (expandingPortalImg != null)
                 expandingPortalImg.color = Color.white;
             worldRect.anchoredPosition = Vector2.zero;
-            yield return new WaitForSeconds(0.12f);
+            yield return new WaitForSeconds(0.10f);
         }
+
+        if (staffGlowImg != null)
+            staffGlowImg.color = new Color(gemGlowColor.r, gemGlowColor.g, gemGlowColor.b, 0f);
 
         // Fase D: Mismo efecto de giro y contracción hacia cero mientras el reino sana (portalinfecta -> fondomenu)
         Vector3 portalStartScale = expandingPortalRect != null ? expandingPortalRect.localScale : Vector3.one;
@@ -552,7 +743,7 @@ public class ArcaniaFinalEnding : MonoBehaviour
 
             if (tmp.gameObject.name.Contains("Title") || tmp.fontSize >= 28f)
             {
-                tmp.text = "¡PORTAL SELLADO!\nKAI ES UN VERDADERO MAGO DE ARCANÍA";
+                tmp.text = "¡PORTAL SELLADO!\nKAI ES EL NUEVO MAGO DE ARCANÍA";
                 tmp.enableAutoSizing = true;
                 tmp.fontSizeMin = 36f;
                 tmp.fontSizeMax = 66f;
@@ -602,6 +793,240 @@ public class ArcaniaFinalEnding : MonoBehaviour
         {
             Destroy(orb);
         }
+    }
+
+    private void BuildUiKaiPortrait(RectTransform worldRect, PlayerController player, out RectTransform kaiUiRect, out Image staffGlowImg)
+    {
+        GameObject kaiGo = new GameObject("UiKaiMage", typeof(RectTransform));
+        kaiUiRect = kaiGo.GetComponent<RectTransform>();
+        kaiUiRect.SetParent(worldRect, false);
+        kaiUiRect.anchorMin = new Vector2(0.755f, 0.235f);
+        kaiUiRect.anchorMax = new Vector2(0.755f, 0.235f);
+        kaiUiRect.pivot = new Vector2(0.5f, 0f);
+        kaiUiRect.sizeDelta = Vector2.zero;
+        kaiUiRect.anchoredPosition = Vector2.zero;
+
+        // Aura mágica bajo los pies de Kai en el risco
+        GameObject auraGo = new GameObject("KaiMageGroundAura", typeof(RectTransform), typeof(Image));
+        RectTransform auraRect = auraGo.GetComponent<RectTransform>();
+        auraRect.SetParent(kaiUiRect, false);
+        auraRect.anchorMin = new Vector2(0.5f, 0.5f);
+        auraRect.anchorMax = new Vector2(0.5f, 0.5f);
+        auraRect.pivot = new Vector2(0.5f, 0.5f);
+        auraRect.sizeDelta = new Vector2(210f, 110f);
+        auraRect.anchoredPosition = new Vector2(0f, 15f);
+
+        Image auraImg = auraGo.GetComponent<Image>();
+        auraImg.sprite = MagicFX.GlowSprite;
+        auraImg.color = new Color(portalColor.r, portalColor.g, portalColor.b, 0.48f);
+        auraImg.raycastTarget = false;
+
+        List<SpriteRenderer> renderers = new List<SpriteRenderer>();
+        foreach (SpriteRenderer sr in player.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (!sr.enabled || !sr.gameObject.activeInHierarchy || sr.sprite == null)
+                continue;
+            string n = sr.gameObject.name;
+            if (n.Contains("Shockwave") || n.Contains("Particle") || n.Contains("Trail"))
+                continue;
+            renderers.Add(sr);
+        }
+
+        renderers.Sort((a, b) =>
+        {
+            int keyA = SortingLayer.GetLayerValueFromID(a.sortingLayerID) * 10000 + a.sortingOrder;
+            int keyB = SortingLayer.GetLayerValueFromID(b.sortingLayerID) * 10000 + b.sortingOrder;
+            return keyA.CompareTo(keyB);
+        });
+
+        const float pixelsPerWorldUnit = 190f;
+        Vector3 originWorld = player.transform.position;
+        Vector2 staffTipUi = new Vector2(-80f, 125f);
+        bool foundStaffTip = false;
+
+        foreach (SpriteRenderer sr in renderers)
+        {
+            Sprite sp = sr.sprite;
+            Vector2 spSize = sp.rect.size;
+            if (spSize.x <= 0f || spSize.y <= 0f || sp.pixelsPerUnit <= 0f)
+                continue;
+
+            GameObject partGo = new GameObject("Ui_" + sr.gameObject.name, typeof(RectTransform), typeof(Image));
+            RectTransform partRect = partGo.GetComponent<RectTransform>();
+            partRect.SetParent(kaiUiRect, false);
+            partRect.anchorMin = new Vector2(0.5f, 0.5f);
+            partRect.anchorMax = new Vector2(0.5f, 0.5f);
+            partRect.pivot = new Vector2(sp.pivot.x / spSize.x, sp.pivot.y / spSize.y);
+            partRect.sizeDelta = (spSize / sp.pixelsPerUnit) * pixelsPerWorldUnit;
+
+            Vector3 relWorld = sr.transform.position - originWorld;
+            partRect.anchoredPosition = new Vector2(relWorld.x, relWorld.y) * pixelsPerWorldUnit;
+
+            Vector2 rightVec = sr.transform.TransformVector(Vector3.right);
+            Vector2 upVec = sr.transform.TransformVector(Vector3.up);
+            if (sr.flipX) rightVec = -rightVec;
+            if (sr.flipY) upVec = -upVec;
+
+            float cross = rightVec.x * upVec.y - rightVec.y * upVec.x;
+            float scaleX = rightVec.magnitude * (cross < 0f ? -1f : 1f);
+            float scaleY = upVec.magnitude;
+            float angleDeg = cross < 0f
+                ? Mathf.Atan2(-rightVec.y, -rightVec.x) * Mathf.Rad2Deg
+                : Mathf.Atan2(rightVec.y, rightVec.x) * Mathf.Rad2Deg;
+
+            partRect.localScale = new Vector3(scaleX, scaleY, 1f);
+            partRect.localRotation = Quaternion.Euler(0f, 0f, angleDeg);
+
+            Image img = partGo.GetComponent<Image>();
+            img.sprite = sp;
+            img.color = sr.color;
+            img.preserveAspect = false;
+            img.raycastTarget = false;
+
+            if (sr.gameObject.name.Contains("Weapon") || sr.gameObject.name.Contains("Staff") ||
+                (sp.name != null && sp.name.ToLowerInvariant().Contains("staff")))
+            {
+                Vector3 tipWorld = sr.bounds.center + new Vector3(-sr.bounds.extents.x * 0.6f, sr.bounds.extents.y * 0.7f, 0f);
+                staffTipUi = (Vector2)(tipWorld - originWorld) * pixelsPerWorldUnit;
+                foundStaffTip = true;
+            }
+        }
+
+        if (!foundStaffTip)
+            staffTipUi = new Vector2(-82f, 128f);
+
+        GameObject tipGlowGo = new GameObject("UiKaiStaffTipGlow", typeof(RectTransform), typeof(Image));
+        RectTransform tipRect = tipGlowGo.GetComponent<RectTransform>();
+        tipRect.SetParent(kaiUiRect, false);
+        tipRect.anchorMin = new Vector2(0.5f, 0.5f);
+        tipRect.anchorMax = new Vector2(0.5f, 0.5f);
+        tipRect.pivot = new Vector2(0.5f, 0.5f);
+        tipRect.sizeDelta = new Vector2(88f, 88f);
+        tipRect.anchoredPosition = staffTipUi;
+
+        staffGlowImg = tipGlowGo.GetComponent<Image>();
+        staffGlowImg.sprite = MagicFX.GlowSprite;
+        staffGlowImg.color = new Color(gemGlowColor.r, gemGlowColor.g, gemGlowColor.b, 0f);
+        staffGlowImg.raycastTarget = false;
+    }
+
+    private IEnumerator LaunchUiArcanePulse(RectTransform worldRect, Vector2 startLocal, Vector2 endLocal, Color pulseColor)
+    {
+        GameObject boltGo = new GameObject("UiArcanePulse", typeof(RectTransform), typeof(Image));
+        RectTransform boltRect = boltGo.GetComponent<RectTransform>();
+        boltRect.SetParent(worldRect, false);
+        boltRect.anchorMin = new Vector2(0.5f, 0.5f);
+        boltRect.anchorMax = new Vector2(0.5f, 0.5f);
+        boltRect.pivot = new Vector2(0.5f, 0.5f);
+        boltRect.sizeDelta = new Vector2(115f, 115f);
+        boltRect.anchoredPosition = startLocal;
+
+        Image boltImg = boltGo.GetComponent<Image>();
+        boltImg.sprite = MagicFX.GlowSprite;
+        boltImg.color = pulseColor;
+        boltImg.raycastTarget = false;
+
+        GameObject coreGo = new GameObject("Core", typeof(RectTransform), typeof(Image));
+        RectTransform coreRect = coreGo.GetComponent<RectTransform>();
+        coreRect.SetParent(boltRect, false);
+        coreRect.anchorMin = new Vector2(0.5f, 0.5f);
+        coreRect.anchorMax = new Vector2(0.5f, 0.5f);
+        coreRect.pivot = new Vector2(0.5f, 0.5f);
+        coreRect.sizeDelta = new Vector2(46f, 46f);
+        coreRect.anchoredPosition = Vector2.zero;
+
+        Image coreImg = coreGo.GetComponent<Image>();
+        coreImg.sprite = MagicFX.GlowSprite;
+        coreImg.color = Color.white;
+        coreImg.raycastTarget = false;
+
+        const float travelTime = 0.28f;
+        float elapsed = 0f;
+        float trailCooldown = 0f;
+
+        while (elapsed < travelTime && boltRect != null)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / travelTime);
+            Vector2 arcOffset = Vector2.up * (Mathf.Sin(t * Mathf.PI) * 34f);
+            Vector2 pos = Vector2.Lerp(startLocal, endLocal, t) + arcOffset;
+            boltRect.anchoredPosition = pos;
+            boltRect.localScale = Vector3.one * Mathf.Lerp(0.85f, 1.35f, t);
+
+            trailCooldown -= Time.deltaTime;
+            if (trailCooldown <= 0f)
+            {
+                trailCooldown = 0.045f;
+                StartCoroutine(SpawnUiSparkleDot(worldRect, pos, pulseColor));
+            }
+
+            yield return null;
+        }
+
+        if (boltGo != null)
+            Destroy(boltGo);
+    }
+
+    private static IEnumerator SpawnUiSparkleDot(RectTransform worldRect, Vector2 localPos, Color color)
+    {
+        GameObject dotGo = new GameObject("UiPulseTrail", typeof(RectTransform), typeof(Image));
+        RectTransform rt = dotGo.GetComponent<RectTransform>();
+        rt.SetParent(worldRect, false);
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(48f, 48f);
+        rt.anchoredPosition = localPos + Random.insideUnitCircle * 10f;
+
+        Image img = dotGo.GetComponent<Image>();
+        img.sprite = MagicFX.GlowSprite;
+        img.color = color;
+        img.raycastTarget = false;
+
+        const float life = 0.22f;
+        float t = 0f;
+        while (t < life && rt != null)
+        {
+            t += Time.deltaTime;
+            float k = Mathf.Clamp01(t / life);
+            rt.localScale = Vector3.one * (1f - k * 0.8f);
+            img.color = new Color(color.r, color.g, color.b, (1f - k) * 0.7f);
+            yield return null;
+        }
+
+        if (dotGo != null)
+            Destroy(dotGo);
+    }
+
+    private static IEnumerator SpawnUiShockwave(RectTransform worldRect, Vector2 localPos, Color color)
+    {
+        GameObject ringGo = new GameObject("UiPortalShockwave", typeof(RectTransform), typeof(Image));
+        RectTransform rt = ringGo.GetComponent<RectTransform>();
+        rt.SetParent(worldRect, false);
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(180f, 180f);
+        rt.anchoredPosition = localPos;
+
+        Image img = ringGo.GetComponent<Image>();
+        img.sprite = MagicFX.GlowSprite;
+        img.color = color;
+        img.raycastTarget = false;
+
+        const float life = 0.36f;
+        float t = 0f;
+        while (t < life && rt != null)
+        {
+            t += Time.deltaTime;
+            float k = Mathf.Clamp01(t / life);
+            rt.localScale = Vector3.one * Mathf.Lerp(0.4f, 3.1f, k);
+            img.color = new Color(color.r, color.g, color.b, (1f - k) * 0.9f);
+            yield return null;
+        }
+
+        if (ringGo != null)
+            Destroy(ringGo);
     }
 }
 

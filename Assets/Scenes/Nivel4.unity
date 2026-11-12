@@ -35400,9 +35400,19 @@ MonoBehaviour:
   scoreValue: 300
   gemGlowColor: {r: 0.35, g: 0.95, b: 1, a: 0.9}
   portalColor: {r: 0.75, g: 0.3, b: 1, a: 0.9}
-  pickupMessage: "\xA1Has recuperado la Gema de Arcan\xEDa! Canalizando su poder para sellar el Portal..."
-  extendingPortalMessage: "\xA1Cuidado! \xA1Aunque el altar cay\xF3, el portal principal sobre Arcan\xEDa se est\xE1 extendiendo!"
-  closingMessage: "\xA1El Portal ha sido cerrado para siempre! Kai se ha convertido en el nuevo Mago de Arcan\xEDa."
+  pickupMessage: "\xA1Has obtenido la Gema de Arcan\xEDa! Su poder despierta en tu interior..."
+  transformationMessage: "\xA1Te has convertido en el nuevo Mago del mundo de Arcan\xEDa!"
+  altarIntroMessage: "El portal estuvo a punto de infectar todo el reino. Gracias a la Gema que obtuviste, \xA1ahora se puede cerrar!"
+  extendingPortalMessage: "\xA1Has salvado al reino! El portal se cerrar\xE1 gracias a tu poder como Mago de Arcan\xEDa."
+  closingMessage: "\xA1El Portal ha sido cerrado para siempre! Arcan\xEDa vuelve a brillar en paz."
+  mageClothBody: {fileID: 2949992012896409553, guid: e667f8d8fc4242adb4c06dc37158875c, type: 3}
+  mageClothLeft: {fileID: 7891202649814613956, guid: e667f8d8fc4242adb4c06dc37158875c, type: 3}
+  mageClothRight: {fileID: 2371925709717891883, guid: e667f8d8fc4242adb4c06dc37158875c, type: 3}
+  mageArmorBody: {fileID: 3363842552766674601, guid: cbbec0e6e4ba46f38c42d855a2efb10e, type: 3}
+  mageArmorLeft: {fileID: 7136363362834297291, guid: cbbec0e6e4ba46f38c42d855a2efb10e, type: 3}
+  mageArmorRight: {fileID: -8979658097689788454, guid: cbbec0e6e4ba46f38c42d855a2efb10e, type: 3}
+  magePantLeft: {fileID: -3140455820982803383, guid: f71ba98f5e5894a9e9a109dc34922832, type: 3}
+  magePantRight: {fileID: 7313079964742260036, guid: f71ba98f5e5894a9e9a109dc34922832, type: 3}
   infectedWorldSprite: {fileID: -5859928324443106399, guid: 43492dd2dca222d458d358099aba97cb, type: 3}
   expandingPortalSprite: {fileID: -3307617492558021158, guid: a84bf14cc760c68418115f7fa6c8c10b, type: 3}
   healedWorldSprite: {fileID: 879639340787135689, guid: c9357132706d87741b198242198489d6, type: 3}

@@ -852,6 +852,56 @@ public class PlayerController : MonoBehaviour
         ActualizarTextoDano();
     }
 
+    public Transform FindUnitRoot()
+    {
+        foreach (Transform child in GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == "UnitRoot")
+                return child;
+        }
+        return transform;
+    }
+
+    /// <summary>Cambia únicamente la vestimenta del cuerpo de Kai al atuendo de Mago de Arcanía (conservando cabeza y rostro).</summary>
+    public void TransformToMageOutfit(
+        Sprite clothBody, Sprite clothLeft, Sprite clothRight,
+        Sprite armorBody, Sprite armorLeft, Sprite armorRight,
+        Sprite pantLeft, Sprite pantRight)
+    {
+        foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            switch (sr.gameObject.name)
+            {
+                case "ClothBody":
+                    if (clothBody != null) { sr.sprite = clothBody; sr.color = Color.white; sr.enabled = true; }
+                    break;
+                case "21_LCArm":
+                    if (clothLeft != null) { sr.sprite = clothLeft; sr.color = Color.white; sr.enabled = true; }
+                    break;
+                case "-19_RCArm":
+                    if (clothRight != null) { sr.sprite = clothRight; sr.color = Color.white; sr.enabled = true; }
+                    break;
+                case "BodyArmor":
+                    if (armorBody != null) { sr.sprite = armorBody; sr.color = Color.white; sr.enabled = true; }
+                    break;
+                case "25_L_Shoulder":
+                    if (armorLeft != null) { sr.sprite = armorLeft; sr.color = Color.white; sr.enabled = true; }
+                    break;
+                case "-15_R_Shoulder":
+                    if (armorRight != null) { sr.sprite = armorRight; sr.color = Color.white; sr.enabled = true; }
+                    break;
+                case "_2L_Cloth":
+                    if (pantLeft != null) { sr.sprite = pantLeft; sr.color = Color.white; sr.enabled = true; }
+                    break;
+                case "_11R_Cloth":
+                    if (pantRight != null) { sr.sprite = pantRight; sr.color = Color.white; sr.enabled = true; }
+                    break;
+            }
+        }
+
+        EquipCape();
+    }
+
     public void StartInvincibility(float duration)
     {
         StartCoroutine(InvincibilityRoutine(duration));
