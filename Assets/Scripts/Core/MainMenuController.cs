@@ -68,6 +68,7 @@ public class MainMenuController : MonoBehaviour
             return;
         }
 
+        GameManager.SkipStartMenuOnce = true;
         ScreenFader.FadeAndLoad(firstLevelScene, 1f);
     }
 
@@ -85,6 +86,7 @@ public class MainMenuController : MonoBehaviour
         if (!Application.CanStreamedLevelBeLoaded(scene))
             scene = firstLevelScene;
 
+        GameManager.SkipStartMenuOnce = true;
         ScreenFader.FadeAndLoad(scene, 1f);
     }
 

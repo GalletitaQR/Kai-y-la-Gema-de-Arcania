@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -63,6 +64,8 @@ public class GameManager : MonoBehaviour
     public float ElapsedTime { get; private set; }
     public bool IsPlaying => State == GameState.Playing;
     public bool IsStartMenuOpen { get; private set; }
+
+    private EventSystem startMenuGameplayEventSystem;
 
     public static GameManager EnsureExists()
     {
@@ -159,7 +162,6 @@ public class GameManager : MonoBehaviour
         SetActive(gameOverPanel, false);
         SetActive(victoryPanel, false);
 
-        SaveSystem.SaveScene(SceneManager.GetActiveScene().name);
         RefreshScore();
         RefreshTime();
 
@@ -180,15 +182,50 @@ public class GameManager : MonoBehaviour
             yield break;
         }
 
+        startMenuGameplayEventSystem = EventSystem.current;
+        SceneManager.sceneLoaded += HandleStartMenuSceneLoaded;
         AsyncOperation load = SceneManager.LoadSceneAsync(menuSceneName, LoadSceneMode.Additive);
         if (load == null)
         {
+            SceneManager.sceneLoaded -= HandleStartMenuSceneLoaded;
+            startMenuGameplayEventSystem = null;
             IsStartMenuOpen = false;
             BeginGame();
             yield break;
         }
 
         yield return load;
+        SceneManager.sceneLoaded -= HandleStartMenuSceneLoaded;
+        startMenuGameplayEventSystem = null;
+
+        Scene menuScene = SceneManager.GetSceneByName(menuSceneName);
+        if (!menuScene.IsValid() || !menuScene.isLoaded)
+        {
+            Debug.LogError($"The start menu scene '{menuSceneName}' was not loaded.");
+            BeginGame();
+            yield break;
+        }
+    }
+
+    private void HandleStartMenuSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode != LoadSceneMode.Additive || scene.name != menuSceneName)
+            return;
+
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            foreach (EventSystem eventSystem in root.GetComponentsInChildren<EventSystem>(true))
+                eventSystem.enabled = false;
+
+            foreach (AudioListener audioListener in root.GetComponentsInChildren<AudioListener>(true))
+                audioListener.enabled = false;
+        }
+
+        if (startMenuGameplayEventSystem != null && startMenuGameplayEventSystem.isActiveAndEnabled)
+        {
+            startMenuGameplayEventSystem.enabled = false;
+            startMenuGameplayEventSystem.enabled = true;
+        }
     }
 
     public void BeginGame()
@@ -213,6 +250,8 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        SceneManager.sceneLoaded -= HandleStartMenuSceneLoaded;
+
         if (Instance == this)
             Instance = null;
 
