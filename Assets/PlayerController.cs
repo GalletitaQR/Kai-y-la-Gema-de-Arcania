@@ -830,19 +830,11 @@ public class PlayerController : MonoBehaviour
                 srBack.color = new Color(0.92f, 0.75f, 1f, 1f);
             }
 
-            // Brillito morado moderado (no muy brillante ni muy opaco)
+            // Si existía un halo/brillo previo adherido a la capa, lo removemos
             Transform existingGlow = back.Find("CapeMagicGlow");
-            if (existingGlow == null)
+            if (existingGlow != null)
             {
-                SpriteRenderer glowSr = MagicFX.AddGlow(back, new Color(0.68f, 0.32f, 0.95f, 0.40f), 1.22f, 0f);
-                glowSr.name = "CapeMagicGlow";
-                glowSr.sortingLayerName = "Player";
-                if (srBack != null)
-                    glowSr.sortingOrder = srBack.sortingOrder - 1; // Colocado detrás de la capa
-            }
-            else
-            {
-                existingGlow.gameObject.SetActive(true);
+                Destroy(existingGlow.gameObject);
             }
 
             visualCape = back.gameObject;

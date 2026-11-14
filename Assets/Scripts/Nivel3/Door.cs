@@ -48,14 +48,43 @@ public class Door : MonoBehaviour
 
     private void Update()
     {
-        if (playerInside && IsOpen && Input.GetKeyDown(interactKey))
+        if (playerInside && IsOpen && (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.H)))
         {
             TeleportPlayer();
         }
     }
 
+    private Transform ResolvePlayerTransform(Collider2D other)
+    {
+        if (other == null) return null;
+        var pc = other.GetComponentInParent<PlayerController>();
+        if (pc != null) return pc.transform;
+        if (other.attachedRigidbody != null) return other.attachedRigidbody.transform;
+        return other.transform.root;
+    }
+
+    private bool IsPlayerCollider(Collider2D other)
+    {
+        if (other == null) return false;
+        if (other.CompareTag(playerTag)) return true;
+        if (other.attachedRigidbody != null && other.attachedRigidbody.CompareTag(playerTag)) return true;
+        if (other.GetComponentInParent<PlayerController>() != null) return true;
+        return false;
+    }
+
     private void TeleportPlayer()
     {
+        if (playerTransform == null)
+        {
+            var pc = FindFirstObjectByType<PlayerController>();
+            if (pc != null) playerTransform = pc.transform;
+            else
+            {
+                var pObj = GameObject.FindWithTag(playerTag);
+                if (pObj != null) playerTransform = pObj.transform;
+            }
+        }
+
         if (targetDoor != null && playerTransform != null)
         {
             // 1. Cambiar la música de fondo si se asignó un AudioClip para esta zona
@@ -111,9 +140,9 @@ public class Door : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag(playerTag)) return;
+        if (!IsPlayerCollider(other)) return;
         playerInside = true;
-        playerTransform = other.transform;
+        playerTransform = ResolvePlayerTransform(other);
 
         if (HintUI.Instance != null)
         {
@@ -131,7 +160,7 @@ public class Door : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (!other.CompareTag(playerTag)) return;
+        if (!IsPlayerCollider(other)) return;
         playerInside = false;
         playerTransform = null;
         HintUI.Hide(this);

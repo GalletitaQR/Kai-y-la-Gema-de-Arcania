@@ -3597,7 +3597,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2.5, y: 2.5}
   m_EdgeRadius: 0
 --- !u!4 &385733067
 Transform:
@@ -5910,13 +5910,13 @@ MonoBehaviour:
   zoneMusic: {fileID: 0}
   targetScene: Nivel4
   sceneLoadDelay: 0.5
-  interactKey: 104
+  interactKey: 101
   onPlayerCross:
     m_PersistentCalls:
       m_Calls: []
   playerTag: Player
   lockedMessage: "La puerta est\xE1 cerrada. \xA1Derrota al jefe para avanzar!"
-  openMessage: Presiona [E] para avanzar
+  openMessage: Presiona [E] o [H] para avanzar
 --- !u!61 &795550495
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -5961,7 +5961,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.8570137, y: 1.0536189}
+  m_Size: {x: 2.5, y: 2.5}
   m_EdgeRadius: 0
 --- !u!4 &795550496
 Transform:
@@ -10574,12 +10574,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 14.3
+  m_fontSizeBase: 24
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 14
+  m_fontSizeMax: 26
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -10643,8 +10643,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 2, y: -140}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 3.333313, y: -87.16667}
+  m_SizeDelta: {x: 179.5, y: 16}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &1196800840
 PrefabInstance:
@@ -11976,7 +11976,7 @@ MonoBehaviour:
   onPlayerLeft:
     m_PersistentCalls:
       m_Calls: []
-  maxHealth: 500
+  maxHealth: 300
   scoreValue: 1000
   sendScoreToPlayer: 1
   scoreMethodName: AddScore
@@ -24280,7 +24280,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.6041667, y: 0.7708333}
+  m_Size: {x: 2.2, y: 2.2}
   m_EdgeRadius: 0
 --- !u!114 &1766342743
 MonoBehaviour:

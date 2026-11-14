@@ -90,7 +90,7 @@ public class CaveSnake : MonoBehaviour, IEnemigo
         // Tamaño más imponente y amenazante como pidió el usuario
         if (transform.localScale.x < 2f)
         {
-            transform.localScale = new Vector3(2.2f, 2.2f, 1f);
+            transform.localScale = new Vector3(3.0f, 3.0f, 1f);
         }
 
         currentHealth = maxHealth;

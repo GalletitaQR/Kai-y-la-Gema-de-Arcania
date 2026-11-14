@@ -51,8 +51,22 @@ public class Lever : MonoBehaviour
 
     private void ApplyVisual(bool on)
     {
-        // Opción B: dos objetos
-        if (offObject != null) offObject.SetActive(!on);
+        // Opción B: dos objetos superpuestos
+        if (offObject != null)
+        {
+            if (offObject == gameObject)
+            {
+                // Si el objeto apagado es el mismo que tiene este script y collider,
+                // solo ocultamos/mostramos sus renderers para no desactivar el script ni el collider.
+                var rends = offObject.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in rends) r.enabled = !on;
+            }
+            else
+            {
+                offObject.SetActive(!on);
+            }
+        }
+
         if (onObject != null) onObject.SetActive(on);
 
         // Opción A: cambio de sprite (si no hay sprites asignados, solo voltea)
@@ -98,16 +112,25 @@ public class Lever : MonoBehaviour
         else HintUI.Hide(this);
     }
 
+    private bool IsPlayerCollider(Collider2D other)
+    {
+        if (other == null) return false;
+        if (other.CompareTag(playerTag)) return true;
+        if (other.attachedRigidbody != null && other.attachedRigidbody.CompareTag(playerTag)) return true;
+        if (other.GetComponentInParent<PlayerController>() != null) return true;
+        return false;
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag(playerTag)) return;
+        if (!IsPlayerCollider(other)) return;
         playerInside = true;
         RefreshHint();
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (!other.CompareTag(playerTag)) return;
+        if (!IsPlayerCollider(other)) return;
         playerInside = false;
         HintUI.Hide(this);
     }
@@ -115,9 +138,9 @@ public class Lever : MonoBehaviour
     private static bool InteractPressed()
     {
 #if ENABLE_INPUT_SYSTEM
-        return Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame;
-#else
-        return Input.GetKeyDown(KeyCode.H);
+        bool hPressed = Keyboard.current != null && (Keyboard.current.hKey.wasPressedThisFrame || Keyboard.current.eKey.wasPressedThisFrame);
+        if (hPressed) return true;
 #endif
+        return Input.GetKeyDown(KeyCode.H) || Input.GetKeyDown(KeyCode.E);
     }
 }

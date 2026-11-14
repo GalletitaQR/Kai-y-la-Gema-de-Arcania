@@ -49,9 +49,18 @@ public class BossDoor : MonoBehaviour
         SetState(false, false);
     }
 
+    private bool IsPlayerCollider(Collider2D other)
+    {
+        if (other == null) return false;
+        if (other.CompareTag(playerTag)) return true;
+        if (other.attachedRigidbody != null && other.attachedRigidbody.CompareTag(playerTag)) return true;
+        if (other.GetComponentInParent<PlayerController>() != null) return true;
+        return false;
+    }
+
     private void Update()
     {
-        if (playerInside && IsOpen && !crossing && Input.GetKeyDown(interactKey))
+        if (playerInside && IsOpen && !crossing && (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.H)))
         {
             Cross();
         }
@@ -116,7 +125,7 @@ public class BossDoor : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag(playerTag)) return;
+        if (!IsPlayerCollider(other)) return;
         playerInside = true;
 
         if (HintUI.Instance != null)
@@ -135,7 +144,7 @@ public class BossDoor : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (!other.CompareTag(playerTag)) return;
+        if (!IsPlayerCollider(other)) return;
         playerInside = false;
         HintUI.Hide(this);
     }
