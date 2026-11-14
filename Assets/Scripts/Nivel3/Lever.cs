@@ -126,6 +126,7 @@ public class Lever : MonoBehaviour
         if (!IsPlayerCollider(other)) return;
         playerInside = true;
         RefreshHint();
+        VirtualControlsUI.RequestInteractButton(true, "PALANCA");
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -133,10 +134,13 @@ public class Lever : MonoBehaviour
         if (!IsPlayerCollider(other)) return;
         playerInside = false;
         HintUI.Hide(this);
+        VirtualControlsUI.RequestInteractButton(false);
     }
 
     private static bool InteractPressed()
     {
+        if (VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.InteractPressedThisFrame)
+            return true;
 #if ENABLE_INPUT_SYSTEM
         bool hPressed = Keyboard.current != null && (Keyboard.current.hKey.wasPressedThisFrame || Keyboard.current.eKey.wasPressedThisFrame);
         if (hPressed) return true;

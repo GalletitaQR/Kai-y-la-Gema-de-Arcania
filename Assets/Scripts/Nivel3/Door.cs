@@ -48,7 +48,12 @@ public class Door : MonoBehaviour
 
     private void Update()
     {
-        if (playerInside && IsOpen && (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.H)))
+        bool interactPressed = Input.GetKeyDown(interactKey) ||
+                               Input.GetKeyDown(KeyCode.E) ||
+                               Input.GetKeyDown(KeyCode.H) ||
+                               (VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.InteractPressedThisFrame);
+
+        if (playerInside && IsOpen && interactPressed)
         {
             TeleportPlayer();
         }
@@ -111,6 +116,11 @@ public class Door : MonoBehaviour
         {
             HintUI.Show(this, openMessage);
         }
+
+        if (playerInside)
+        {
+            VirtualControlsUI.RequestInteractButton(true, "ENTRAR");
+        }
     }
 
     public void Close()
@@ -121,6 +131,11 @@ public class Door : MonoBehaviour
         if (playerInside && HintUI.Instance != null)
         {
             HintUI.Show(this, lockedMessage);
+        }
+
+        if (playerInside)
+        {
+            VirtualControlsUI.RequestInteractButton(false);
         }
     }
 
@@ -144,13 +159,14 @@ public class Door : MonoBehaviour
         playerInside = true;
         playerTransform = ResolvePlayerTransform(other);
 
-        if (HintUI.Instance != null)
+        if (IsOpen)
         {
-            if (IsOpen)
-            {
-                HintUI.Show(this, openMessage);
-            }
-            else
+            if (HintUI.Instance != null) HintUI.Show(this, openMessage);
+            VirtualControlsUI.RequestInteractButton(true, "ENTRAR");
+        }
+        else
+        {
+            if (HintUI.Instance != null)
             {
                 HintUI.Show(this, lockedMessage);
                 if (audioSource != null && lockedClip != null) audioSource.PlayOneShot(lockedClip);
@@ -164,5 +180,6 @@ public class Door : MonoBehaviour
         playerInside = false;
         playerTransform = null;
         HintUI.Hide(this);
+        VirtualControlsUI.RequestInteractButton(false);
     }
 }

@@ -60,7 +60,12 @@ public class BossDoor : MonoBehaviour
 
     private void Update()
     {
-        if (playerInside && IsOpen && !crossing && (Input.GetKeyDown(interactKey) || Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.H)))
+        bool interactPressed = Input.GetKeyDown(interactKey) ||
+                               Input.GetKeyDown(KeyCode.E) ||
+                               Input.GetKeyDown(KeyCode.H) ||
+                               (VirtualControlsUI.Instance != null && VirtualControlsUI.Instance.InteractPressedThisFrame);
+
+        if (playerInside && IsOpen && !crossing && interactPressed)
         {
             Cross();
         }
@@ -98,6 +103,9 @@ public class BossDoor : MonoBehaviour
 
         if (playerInside && HintUI.Instance != null)
             HintUI.Show(this, openMessage);
+
+        if (playerInside)
+            VirtualControlsUI.RequestInteractButton(true, "AVANZAR");
     }
 
     public void Close()
@@ -107,6 +115,9 @@ public class BossDoor : MonoBehaviour
 
         if (playerInside && HintUI.Instance != null)
             HintUI.Show(this, lockedMessage);
+
+        if (playerInside)
+            VirtualControlsUI.RequestInteractButton(false);
     }
 
     private void SetState(bool open, bool playSound)
@@ -128,13 +139,14 @@ public class BossDoor : MonoBehaviour
         if (!IsPlayerCollider(other)) return;
         playerInside = true;
 
-        if (HintUI.Instance != null)
+        if (IsOpen)
         {
-            if (IsOpen)
-            {
-                HintUI.Show(this, openMessage);
-            }
-            else
+            if (HintUI.Instance != null) HintUI.Show(this, openMessage);
+            VirtualControlsUI.RequestInteractButton(true, "AVANZAR");
+        }
+        else
+        {
+            if (HintUI.Instance != null)
             {
                 HintUI.Show(this, lockedMessage);
                 if (audioSource != null && lockedClip != null) audioSource.PlayOneShot(lockedClip);
@@ -147,5 +159,6 @@ public class BossDoor : MonoBehaviour
         if (!IsPlayerCollider(other)) return;
         playerInside = false;
         HintUI.Hide(this);
+        VirtualControlsUI.RequestInteractButton(false);
     }
 }

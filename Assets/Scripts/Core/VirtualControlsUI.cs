@@ -16,10 +16,14 @@ public class VirtualControlsUI : MonoBehaviour
     public bool JumpPressedThisFrame { get; private set; }
     public bool AttackPressedThisFrame { get; private set; }
     public bool SwitchWeaponPressedThisFrame { get; private set; }
+    public bool InteractPressedThisFrame { get; private set; }
 
     private CanvasGroup canvasGroup;
     private VirtualJoystickZone joystick;
     private GameObject weaponButtonObj;
+    private GameObject interactButtonObj;
+    private TextMeshProUGUI interactButtonLabel;
+    private int interactInterestCount = 0;
     private static Sprite circleSprite;
 
     public static VirtualControlsUI EnsureExists()
@@ -56,6 +60,7 @@ public class VirtualControlsUI : MonoBehaviour
         JumpPressedThisFrame = false;
         AttackPressedThisFrame = false;
         SwitchWeaponPressedThisFrame = false;
+        InteractPressedThisFrame = false;
 
         // Mostrar los controles solo cuando Kai está jugando activamente
         bool visible = true;
@@ -74,6 +79,32 @@ public class VirtualControlsUI : MonoBehaviour
         if (weaponButtonObj != null)
         {
             weaponButtonObj.SetActive(SaveSystem.HasStaff);
+        }
+
+        if (interactButtonObj != null)
+        {
+            interactButtonObj.SetActive(interactInterestCount > 0);
+        }
+    }
+
+    /// <summary>
+    /// Muestra o solicita el botón táctil de interacción (puertas, palancas, etc.).
+    /// </summary>
+    public static void RequestInteractButton(bool show, string customLabel = "ENTRAR")
+    {
+        if (Instance == null) return;
+
+        if (show)
+        {
+            Instance.interactInterestCount++;
+            if (Instance.interactButtonLabel != null && !string.IsNullOrEmpty(customLabel))
+            {
+                Instance.interactButtonLabel.text = customLabel;
+            }
+        }
+        else
+        {
+            Instance.interactInterestCount = Mathf.Max(0, Instance.interactInterestCount - 1);
         }
     }
 
@@ -182,6 +213,18 @@ public class VirtualControlsUI : MonoBehaviour
             new Color(0.65f, 0.30f, 0.90f, 0.70f),
             () => SwitchWeaponPressedThisFrame = true
         );
+
+        // Botón INTERACTUAR / ACCIÓN (Táctil para Puertas y Palancas)
+        interactButtonObj = CreateActionButton(
+            "BtnInteract",
+            "ENTRAR\n(E)",
+            new Vector2(-360f, 345f),
+            new Vector2(120f, 120f),
+            new Color(0.20f, 0.82f, 0.45f, 0.85f),
+            () => InteractPressedThisFrame = true
+        );
+        interactButtonLabel = interactButtonObj.GetComponentInChildren<TextMeshProUGUI>();
+        interactButtonObj.SetActive(false);
     }
 
     private GameObject CreateActionButton(
