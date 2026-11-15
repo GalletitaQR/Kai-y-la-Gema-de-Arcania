@@ -97,6 +97,8 @@ public class PlayerController : MonoBehaviour
     private Vector3 originalScale;
     public int cristales = 0;
     private GameObject visualCape;
+    private Sprite dialoguePortraitSprite;
+    private Texture2D dialoguePortraitTexture;
 
     public bool IsDead => isDead;
     public Rigidbody2D Body => rb;
@@ -910,6 +912,107 @@ public class PlayerController : MonoBehaviour
             originalScale *= scaleMultiplier;
             SetVisualFacing();
         }
+    }
+
+    public Sprite CreateDialoguePortraitSprite()
+    {
+        if (dialoguePortraitSprite != null)
+            return dialoguePortraitSprite;
+
+        const int width = 256;
+        const int height = 320;
+        const int portraitLayer = 31;
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>(true);
+        Bounds bounds = default;
+        bool hasBounds = false;
+
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (!renderer.enabled || !renderer.gameObject.activeInHierarchy || renderer.sprite == null)
+                continue;
+
+            if (hasBounds)
+                bounds.Encapsulate(renderer.bounds);
+            else
+            {
+                bounds = renderer.bounds;
+                hasBounds = true;
+            }
+        }
+
+        if (!hasBounds)
+        {
+            Debug.LogWarning("No se encontraron sprites visibles para crear el retrato de Kai.", this);
+            return null;
+        }
+
+        int[] originalLayers = new int[renderers.Length];
+        GameObject cameraObject = new GameObject("KaiDialoguePortraitCamera");
+        Camera portraitCamera = cameraObject.AddComponent<Camera>();
+        portraitCamera.enabled = false;
+        portraitCamera.orthographic = true;
+        portraitCamera.clearFlags = CameraClearFlags.SolidColor;
+        portraitCamera.backgroundColor = Color.clear;
+        portraitCamera.cullingMask = 1 << portraitLayer;
+        portraitCamera.aspect = (float)width / height;
+        portraitCamera.nearClipPlane = 0.1f;
+        portraitCamera.farClipPlane = 50f;
+        portraitCamera.orthographicSize = Mathf.Max(
+            bounds.extents.y,
+            bounds.extents.x / portraitCamera.aspect) * 1.12f;
+        portraitCamera.transform.position = bounds.center + new Vector3(0f, 0f, -10f);
+
+        RenderTexture renderTexture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32)
+        {
+            filterMode = FilterMode.Point
+        };
+        dialoguePortraitTexture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp
+        };
+        RenderTexture previousActive = RenderTexture.active;
+
+        try
+        {
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                originalLayers[i] = renderers[i].gameObject.layer;
+                renderers[i].gameObject.layer = portraitLayer;
+            }
+
+            portraitCamera.targetTexture = renderTexture;
+            portraitCamera.Render();
+            RenderTexture.active = renderTexture;
+            dialoguePortraitTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            dialoguePortraitTexture.Apply();
+            dialoguePortraitSprite = Sprite.Create(
+                dialoguePortraitTexture,
+                new Rect(0, 0, width, height),
+                new Vector2(0.5f, 0.5f),
+                100f);
+            dialoguePortraitSprite.name = "Kai Dialogue Portrait";
+            return dialoguePortraitSprite;
+        }
+        finally
+        {
+            for (int i = 0; i < renderers.Length; i++)
+                renderers[i].gameObject.layer = originalLayers[i];
+
+            RenderTexture.active = previousActive;
+            portraitCamera.targetTexture = null;
+            renderTexture.Release();
+            Destroy(renderTexture);
+            Destroy(cameraObject);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (dialoguePortraitSprite != null)
+            Destroy(dialoguePortraitSprite);
+        if (dialoguePortraitTexture != null)
+            Destroy(dialoguePortraitTexture);
     }
 
     public void StartInvincibility(float duration)

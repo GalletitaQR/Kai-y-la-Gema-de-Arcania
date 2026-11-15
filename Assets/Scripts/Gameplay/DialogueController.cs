@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -29,6 +30,12 @@ public class DialogueController : MonoBehaviour
     public Image portrait;
     public Image illustration;
 
+    [Header("Retratos (Sprite)")]
+    [Tooltip("Sprite opcional de Kai; si se deja vacío, se crea desde sus capas del personaje.")]
+    public Sprite kaiPortrait;
+    [Tooltip("Sprite que se muestra cuando habla el Guardián.")]
+    public Sprite guardianPortrait;
+
     [Header("Referencias")]
     public MentorNPC mentor;
     public TutorialController tutorial;
@@ -51,6 +58,13 @@ public class DialogueController : MonoBehaviour
     };
 
     private bool skipRequested;
+    private Sprite defaultPortrait;
+
+    private void Awake()
+    {
+        if (portrait != null)
+            defaultPortrait = portrait.sprite;
+    }
 
     private void Update()
     {
@@ -137,11 +151,26 @@ public class DialogueController : MonoBehaviour
 
         if (portrait != null)
         {
-            if (mentor != null && mentor.Portrait != null)
+            bool isKai = string.Equals(line.speaker, PlayerName, StringComparison.OrdinalIgnoreCase);
+            Sprite speakerPortrait = isKai ? kaiPortrait : guardianPortrait;
+
+            if (isKai && speakerPortrait == null)
             {
-                portrait.sprite = mentor.Portrait;
-                portrait.gameObject.SetActive(true);
+                PlayerController player = FindAnyObjectByType<PlayerController>();
+                if (player != null)
+                    speakerPortrait = player.CreateDialoguePortraitSprite();
             }
+
+            if (!isKai && speakerPortrait == null && mentor != null)
+                speakerPortrait = mentor.Portrait;
+            if (!isKai && speakerPortrait == null)
+                speakerPortrait = defaultPortrait;
+
+            if (speakerPortrait == null)
+                Debug.LogWarning("No hay un Sprite asignado para el retrato de " + line.speaker + ".", this);
+
+            portrait.sprite = speakerPortrait;
+            portrait.gameObject.SetActive(speakerPortrait != null);
         }
 
         if (illustration != null)

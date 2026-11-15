@@ -172,8 +172,7 @@ public static class GameSetupBuilder
             ImportSprite(ArtDir + file, 100f, null, FilterMode.Bilinear);
         }
 
-        // The wizard sheet: pivot at the feet of the first frame is set at runtime by MentorNPC.
-        ImportSprite(ArtDir + "mago (1).png", 100f, null, FilterMode.Bilinear);
+        // Keep the wizard sheet's existing multiple-sprite slicing.
 
         Directory.CreateDirectory(GeneratedDir);
         if (!File.Exists(HeartPath))
@@ -555,6 +554,7 @@ public static class GameSetupBuilder
 
         MentorNPC mentor = PlaceMentor();
         prologue.mentor = mentor;
+        prologue.guardianPortrait = LoadMentorSprite();
 
         PlaceStaff();
         CreateEventSystemIfMissing();
@@ -601,7 +601,12 @@ public static class GameSetupBuilder
 
     private static MentorNPC PlaceMentor()
     {
-        Sprite sheet = Art("mago (1).png");
+        Sprite sheet = LoadMentorSprite();
+        if (sheet == null)
+        {
+            Debug.LogError("No se encontró el sprite del Guardián en " + ArtDir + "mago.png");
+            return null;
+        }
 
         GameObject go = new GameObject("Mentor");
         go.transform.position = new Vector3(-2.4f, -0.75f, 0f);
@@ -614,6 +619,17 @@ public static class GameSetupBuilder
         MentorNPC npc = go.AddComponent<MentorNPC>();
         npc.sheet = sheet;
         return npc;
+    }
+
+    private static Sprite LoadMentorSprite()
+    {
+        foreach (UnityEngine.Object asset in AssetDatabase.LoadAllAssetsAtPath(ArtDir + "mago.png"))
+        {
+            if (asset is Sprite sprite && sprite.name == "mago (1)_0")
+                return sprite;
+        }
+
+        return null;
     }
 
     private static void PlaceStaff()
@@ -904,6 +920,7 @@ public static class GameSetupBuilder
         GameObject portraitGo = UiKit.New("Portrait", box.transform, typeof(Image));
         UiKit.Place(UiKit.Rect(portraitGo), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(30f, 0f), new Vector2(230f, 260f));
         Image portrait = portraitGo.GetComponent<Image>();
+        portrait.sprite = LoadMentorSprite();
         portrait.preserveAspect = true;
         portrait.raycastTarget = false;
 

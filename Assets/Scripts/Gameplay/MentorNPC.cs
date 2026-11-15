@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// The Guardian of Arcania (mentor wizard). Plays an idle animation made from a horizontal sprite sheet,
+/// The Guardian of Arcania (mentor wizard). Plays an idle animation from the first row of a sprite sheet,
 /// stands on the ground and always looks at Kai. It stays at its post watching over the portal.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
@@ -81,11 +81,14 @@ public class MentorNPC : MonoBehaviour
         Texture2D texture = sheet.texture;
         int count = Mathf.Max(1, frameCount);
         float cellWidth = texture.width / (float)count;
+        int rowCount = Mathf.Max(1, Mathf.RoundToInt(texture.height / cellWidth));
+        float cellHeight = texture.height / (float)rowCount;
+        float firstRowY = texture.height - cellHeight;
 
         frames = new Sprite[count];
         for (int i = 0; i < count; i++)
         {
-            Rect rect = new Rect(Mathf.Round(i * cellWidth), 0f, Mathf.Floor(cellWidth), texture.height);
+            Rect rect = new Rect(Mathf.Round(i * cellWidth), firstRowY, Mathf.Floor(cellWidth), cellHeight);
             frames[i] = Sprite.Create(texture, rect, new Vector2(0.5f, 0f), pixelsPerUnit, 0, SpriteMeshType.FullRect);
         }
     }

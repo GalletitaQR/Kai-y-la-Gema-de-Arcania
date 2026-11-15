@@ -1,2 +1,20 @@
 fileFormatVersion: 2
 guid: f99f9e3ff4b424d4e8e2d8b0ce27e3e0
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - panel: {instanceID: 0}
+  - speakerText: {instanceID: 0}
+  - bodyText: {instanceID: 0}
+  - portrait: {instanceID: 0}
+  - illustration: {instanceID: 0}
+  - kaiPortrait: {fileID: -4444810096762276335, guid: e1d6de3bd1d7a314b93b012f3d6cda14, type: 3}
+  - guardianPortrait: {fileID: 21300000, guid: f6c8cade6cf486e44bcfd6c5b33a27a8, type: 2}
+  - mentor: {instanceID: 0}
+  - tutorial: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
